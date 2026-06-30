@@ -49,6 +49,10 @@ function uniqueDocId(base, store) {
   return id;
 }
 
+function titleFromFilename(filename) {
+  return String(filename || "Untitled review").replace(/\.html?$/i, "") || "Untitled review";
+}
+
 function json(res, status, body) {
   const text = JSON.stringify(body);
   res.writeHead(status, {
@@ -131,10 +135,14 @@ function parseMultipart(buffer, contentType) {
     const nameMatch = /name="([^"]+)"/.exec(rawHeaders);
     if (!nameMatch) continue;
     const filenameMatch = /filename="([^"]*)"/.exec(rawHeaders);
+    const filenameStarMatch = /filename\*=UTF-8''([^;\r\n]*)/i.exec(rawHeaders);
     const name = nameMatch[1];
     const content = Buffer.from(rawContent, "binary");
     if (filenameMatch) {
-      files[name] = { filename: path.basename(filenameMatch[1]), content };
+      const rawFilename = filenameStarMatch
+        ? decodeURIComponent(filenameStarMatch[1])
+        : Buffer.from(filenameMatch[1], "binary").toString("utf8");
+      files[name] = { filename: path.basename(rawFilename.replace(/\\/g, "/")), content };
     } else {
       fields[name] = content.toString("utf8");
     }
@@ -205,11 +213,12 @@ async function handleApi(req, res, url) {
       const parsed = parseMultipart(await readBody(req), req.headers["content-type"]);
       const file = parsed && parsed.files.file;
       if (!file || !file.content.length) throw new Error("请选择 HTML 文件");
-      const docId = uniqueDocId(parsed.fields.title || file.filename, store);
+      const title = String(parsed.fields.title || titleFromFilename(file.filename)).trim();
+      const docId = uniqueDocId(title, store);
       fs.writeFileSync(safeDocFile(docId), file.content);
       const doc = {
         id: docId,
-        title: parsed.fields.title || file.filename,
+        title,
         filename: file.filename,
         sourcePath: "",
         createdAt: new Date().toISOString(),
@@ -281,6 +290,18 @@ async function handleApi(req, res, url) {
     const payload = listAnnotations(store, annotation.docId);
     broadcast(annotation.docId, "annotations", payload);
     return json(res, 200, { annotation });
+  }
+
+  const annotationMatch = /^\/api\/annotations\/([^/]+)$/.exec(url.pathname);
+  if (annotationMatch && req.method === "DELETE") {
+    const annotation = store.annotations.find((item) => item.id === annotationMatch[1]);
+    if (!annotation) return json(res, 404, { error: "批注不存在" });
+    store.annotations = store.annotations.filter((item) => item.id !== annotation.id);
+    store.replies = store.replies.filter((reply) => reply.annotationId !== annotation.id);
+    writeStore(store);
+    const payload = listAnnotations(store, annotation.docId);
+    broadcast(annotation.docId, "annotations", payload);
+    return json(res, 200, { ok: true });
   }
 
   const exportMatch = /^\/api\/docs\/([^/]+)\/export$/.exec(url.pathname);

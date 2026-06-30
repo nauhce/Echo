@@ -82,9 +82,15 @@
     }
     button.primary:hover { background: var(--accent-dark); }
     button.active {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1d4ed8;
+      background: #fff7ed;
+      border-color: #fdba74;
+      color: #c2410c;
+      box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.16);
+    }
+    button.active:hover {
+      background: #ffedd5;
+      border-color: #fb923c;
+      color: #9a3412;
     }
     .layout {
       height: calc(100vh - 56px);
@@ -220,6 +226,7 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      min-height: 0;
     }
     .side-head {
       padding: 16px;
@@ -259,6 +266,9 @@
       padding: 12px;
       display: grid;
       gap: 10px;
+      flex: 1 1 auto;
+      min-height: 0;
+      align-content: start;
     }
     .card {
       border: 1px solid var(--line);
@@ -280,6 +290,47 @@
       justify-content: space-between;
       gap: 10px;
       align-items: flex-start;
+    }
+    .card-title-row {
+      display: flex;
+      gap: 8px;
+      min-width: 0;
+    }
+    .card-tools {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+    .icon-button {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--muted);
+      line-height: 1;
+      font-size: 16px;
+    }
+    .icon-button:hover {
+      color: #b42318;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-button {
+      min-height: 32px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
     }
     .index {
       width: 24px;
@@ -759,14 +810,16 @@
       list.innerHTML = annotations.map((item, index) => `
         <article class="card ${item.status === "resolved" ? "resolved" : ""} ${item.id === activeId ? "active" : ""}" data-card="${item.id}">
           <div class="card-top">
-            <div style="display:flex; gap:8px; min-width:0;">
+            <div class="card-title-row">
               <div class="index">${index + 1}</div>
               <div style="min-width:0;">
                 <div class="element">${escapeHtml(item.elementLabel || item.selector)}</div>
                 <div class="meta">${escapeHtml(item.author)} · ${new Date(item.createdAt).toLocaleString()}</div>
               </div>
             </div>
-            <button type="button" data-status="${item.id}">${item.status === "resolved" ? "重开" : "解决"}</button>
+            <div class="card-tools">
+              <button class="icon-button" type="button" title="删除批注" aria-label="删除批注" data-delete="${item.id}">×</button>
+            </div>
           </div>
           <div class="note">${escapeHtml(item.note)}</div>
           ${(item.replies || []).map(reply => `
@@ -775,6 +828,9 @@
               <div class="meta">${escapeHtml(reply.author)} · ${new Date(reply.createdAt).toLocaleString()}</div>
             </div>
           `).join("")}
+          <div class="card-actions">
+            <button class="status-button" type="button" data-status="${item.id}">${item.status === "resolved" ? "重开批注" : "标记解决"}</button>
+          </div>
           <form class="reply-form" data-reply="${item.id}">
             <input name="note" placeholder="回复这条批注" />
             <button type="submit">回复</button>
@@ -789,6 +845,14 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: item.status === "resolved" ? "open" : "resolved" }),
           });
+        });
+      });
+      list.querySelectorAll("[data-delete]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const item = annotations.find(row => row.id === button.dataset.delete);
+          if (!item) return;
+          if (!confirm("确定删除这条批注吗？")) return;
+          await api(`/api/annotations/${item.id}`, { method: "DELETE" });
         });
       });
       list.querySelectorAll("[data-card]").forEach(card => {

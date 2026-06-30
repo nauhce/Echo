@@ -112,7 +112,7 @@
     }
     .form-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 12px;
       align-items: end;
     }
@@ -176,6 +176,11 @@
       line-height: 1.6;
       margin: 10px 0 0;
     }
+    .file-name-preview {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
     .toast {
       position: fixed;
       right: 20px;
@@ -224,26 +229,11 @@
 
     <section class="panel">
       <h2>导入 HTML</h2>
-      <form id="pathForm" class="form-grid">
-        <div>
-          <label for="htmlPath">本机 HTML 路径</label>
-          <input id="htmlPath" type="text" placeholder="C:\path\to\your-demo.html" />
-        </div>
-        <div>
-          <label for="docTitle">文档名称</label>
-          <input id="docTitle" type="text" placeholder="Example review" />
-        </div>
-        <button type="submit">导入路径</button>
-      </form>
-      <p class="hint">如果 HTML 文件就在你电脑上，用路径导入最快。也可以用下面的文件上传方式。</p>
-      <form id="uploadForm" class="form-grid" style="margin-top:16px;">
+      <form id="uploadForm" class="form-grid">
         <div>
           <label for="file">上传 HTML 文件</label>
           <input id="file" name="file" type="file" accept=".html,text/html" />
-        </div>
-        <div>
-          <label for="uploadTitle">文档名称</label>
-          <input id="uploadTitle" name="title" type="text" placeholder="例如：登录页评审 V1" />
+          <div id="fileNamePreview" class="file-name-preview">文档名称会自动使用文件名。</div>
         </div>
         <button type="submit">上传导入</button>
       </form>
@@ -327,29 +317,21 @@
       }[ch]));
     }
 
-    document.getElementById("pathForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      try {
-        await api("/api/docs/import-path", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            path: document.getElementById("htmlPath").value,
-            title: document.getElementById("docTitle").value,
-          }),
-        });
-        toast("已导入 HTML");
-        loadDocs();
-      } catch (error) {
-        toast(error.message);
-      }
+    document.getElementById("file").addEventListener("change", (event) => {
+      const file = event.currentTarget.files && event.currentTarget.files[0];
+      document.getElementById("fileNamePreview").textContent = file
+        ? `文档名称：${file.name.replace(/\.html?$/i, "")}`
+        : "文档名称会自动使用文件名。";
     });
 
     document.getElementById("uploadForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
       try {
+        const file = document.getElementById("file").files[0];
+        if (!file) throw new Error("请选择 HTML 文件");
         const data = new FormData(form);
+        data.set("title", file.name.replace(/\.html?$/i, ""));
         await fetch("/api/docs/upload", { method: "POST", body: data }).then(async res => {
           const body = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(body.error || "上传失败");
@@ -357,6 +339,7 @@
         });
         toast("已上传 HTML");
         form.reset();
+        document.getElementById("fileNamePreview").textContent = "文档名称会自动使用文件名。";
         loadDocs();
       } catch (error) {
         toast(error.message);
