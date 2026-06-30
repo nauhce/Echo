@@ -1,0 +1,5 @@
+server.out.log
+server.err.log
+data/store.json
+data/docs/*.html
+!data/docs/.gitkeep

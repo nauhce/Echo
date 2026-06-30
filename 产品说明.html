@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML 需求评审助手 - 使用说明</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f5f6f8;
+      color: #17191f;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.7;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 42px 24px 64px;
+    }
+    section {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 18px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+    p {
+      margin: 0;
+      color: #667085;
+    }
+    ol, ul {
+      margin: 0;
+      padding-left: 22px;
+    }
+    li + li {
+      margin-top: 8px;
+    }
+    code {
+      background: #f2f4f7;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-family: Consolas, "Courier New", monospace;
+    }
+    .hero {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+    .hero p {
+      color: #d1d5db;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <h1>HTML 需求评审助手</h1>
+      <p>本地启动、内网访问、多人同步批注，适合产品 HTML demo 评审。</p>
+    </section>
+
+    <section>
+      <h2>一、启动</h2>
+      <ol>
+        <li>双击 <code>启动评审助手.bat</code>。</li>
+        <li>等待浏览器自动打开 <code>http://localhost:5177</code>。</li>
+        <li>在控制台导入 HTML 文件。</li>
+        <li>复制内网评审链接发给同事。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>二、评审</h2>
+      <ul>
+        <li>点击“开启批注”，再点击页面元素添加批注。</li>
+        <li>点击批注圆点，查看该位置的批注记录。</li>
+        <li>点击右侧批注卡片，定位回原区域并高亮闪烁。</li>
+        <li>原元素当前不显示时，批注点会隐藏，但右侧记录保留。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>三、结束</h2>
+      <p>关闭启动窗口即可停止服务；如果窗口找不到，可以双击 <code>停止评审助手.bat</code>。</p>
+    </section>
+
+    <section>
+      <h2>四、给同事访问</h2>
+      <p>同事必须和你在同一内网或 VPN。请发送控制台显示的内网 IP 链接，例如 <code>http://192.168.x.x:5177/review/...</code>，不要发送 <code>localhost</code> 链接。</p>
+    </section>
+  </main>
+</body>
+</html>
