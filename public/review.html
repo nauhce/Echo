@@ -373,6 +373,15 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
     }
+    .ai-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ai-row .meta {
+      flex: 1 1 180px;
+    }
     .empty {
       color: var(--muted);
       font-size: 14px;
@@ -435,6 +444,7 @@
       <span class="status" id="docStatus"></span>
     </div>
     <div class="actions">
+      <button id="requirementModeBtn" type="button">需求文档</button>
       <button id="modeBtn" class="primary" type="button">开启批注</button>
       <button id="refreshBtn" type="button">刷新批注</button>
       <a id="exportLink"><button type="button">导出</button></a>
@@ -481,6 +491,28 @@
     </form>
   </dialog>
 
+  <dialog id="requirementDialog">
+    <form method="dialog" class="modal" id="requirementForm">
+      <h2>需求描述</h2>
+      <div class="field">
+        <label>选中区域</label>
+        <div class="element" id="selectedRequirementElement"></div>
+      </div>
+      <div class="field">
+        <label for="requirementText">需求内容</label>
+        <textarea id="requirementText" placeholder="描述这个区域的功能目标、交互规则、状态和验收点"></textarea>
+      </div>
+      <div class="ai-row">
+        <button type="button" id="generateRequirement">AI 生成</button>
+        <span class="meta">AI 会读取当前选区的 HTML 和可见文本生成初稿。</span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="cancelRequirement">取消</button>
+        <button type="submit" class="primary">保存需求</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -490,15 +522,25 @@
     const hoverBox = document.getElementById("hoverBox");
     const list = document.getElementById("list");
     const modeBtn = document.getElementById("modeBtn");
+    const requirementModeBtn = document.getElementById("requirementModeBtn");
     const authorInput = document.getElementById("author");
     const dialog = document.getElementById("commentDialog");
     const commentForm = document.getElementById("commentForm");
     const commentText = document.getElementById("commentText");
     const selectedElement = document.getElementById("selectedElement");
+    const requirementDialog = document.getElementById("requirementDialog");
+    const requirementForm = document.getElementById("requirementForm");
+    const requirementText = document.getElementById("requirementText");
+    const selectedRequirementElement = document.getElementById("selectedRequirementElement");
     const toastEl = document.getElementById("toast");
     let annotationMode = false;
+    let requirementMode = false;
     let selectedTarget = null;
+    let selectedRequirementTarget = null;
+    let editingRequirementId = "";
     let annotations = [];
+    let requirements = [];
+    let canEditRequirements = true;
     let activeId = "";
     let renderTimer = 0;
 
@@ -568,8 +610,17 @@
       return `body > ${parts.join(" > ")}`;
     }
 
+    function elementSnapshot(el) {
+      const target = isPageTarget(el) ? frame.contentDocument.body : el;
+      return {
+        elementHtml: target ? String(target.outerHTML || "").slice(0, 20000) : "",
+        elementText: target ? normalizeText(target.innerText || target.textContent || "").slice(0, 8000) : "",
+        pageTitle: frame.contentDocument.title || docId,
+      };
+    }
+
     function showHover(el) {
-      if (!annotationMode || !el) {
+      if ((!annotationMode && !requirementMode) || !el) {
         hoverBox.style.display = "none";
         return;
       }
@@ -583,13 +634,13 @@
       hoverBox.style.height = `${Math.max(rect.height, 1)}px`;
     }
 
-    function viewportFor(el) {
+    function viewportFor(el, event) {
       const win = frame.contentWindow;
       const rect = isPageTarget(el)
         ? { left: 0, top: 0, width: win.innerWidth, height: win.innerHeight }
         : el.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
+      const x = event ? event.clientX : rect.left + rect.width / 2;
+      const y = event ? event.clientY : rect.top + rect.height / 2;
       return {
         x,
         y,
@@ -602,17 +653,43 @@
       };
     }
 
-    function openComment(el) {
+    function openComment(el, event) {
       const target = isPageTarget(el) ? frame.contentDocument.body : el;
       selectedTarget = {
         selector: selectorFor(target),
         elementLabel: elementLabel(target),
-        viewport: viewportFor(target),
+        viewport: viewportFor(target, event),
       };
       selectedElement.textContent = selectedTarget.elementLabel || selectedTarget.selector;
       commentText.value = "";
       dialog.showModal();
       setTimeout(() => commentText.focus(), 40);
+    }
+
+    function openRequirement(el, event, existing) {
+      if (!canEditRequirements) {
+        toast("当前姓名只能查看需求文档");
+        return;
+      }
+      const target = existing ? findElement(existing.selector) || frame.contentDocument.body : (isPageTarget(el) ? frame.contentDocument.body : el);
+      selectedRequirementTarget = existing
+        ? {
+            selector: existing.selector,
+            elementLabel: existing.elementLabel,
+            viewport: existing.viewport,
+            ...elementSnapshot(target),
+          }
+        : {
+            selector: selectorFor(target),
+            elementLabel: elementLabel(target),
+            viewport: viewportFor(target, event),
+            ...elementSnapshot(target),
+          };
+      editingRequirementId = existing ? existing.id : "";
+      selectedRequirementElement.textContent = selectedRequirementTarget.elementLabel || selectedRequirementTarget.selector;
+      requirementText.value = existing ? existing.requirement : "";
+      requirementDialog.showModal();
+      setTimeout(() => requirementText.focus(), 40);
     }
 
     function installFrameHandlers() {
@@ -623,10 +700,11 @@
       };
       doc.addEventListener("mousemove", (event) => showHover(event.target), true);
       doc.addEventListener("click", (event) => {
-        if (!annotationMode) return;
+        if (!annotationMode && !requirementMode) return;
         event.preventDefault();
         event.stopPropagation();
-        openComment(event.target);
+        if (annotationMode) openComment(event.target, event);
+        if (requirementMode) openRequirement(event.target, event);
       }, true);
       doc.addEventListener("scroll", scheduleRenderPins, true);
       frame.contentWindow.addEventListener("resize", scheduleRenderPins);
@@ -662,10 +740,41 @@
       return currentText.includes(savedText.slice(0, 24)) || savedText.includes(currentText.slice(0, 24));
     }
 
+    function pointFromStoredViewport(item) {
+      const viewport = item.viewport || {};
+      const win = frame.contentWindow;
+      if (Number.isFinite(viewport.docX) && Number.isFinite(viewport.docY)) {
+        return {
+          x: viewport.docX - win.scrollX,
+          y: viewport.docY - win.scrollY,
+          scrollX: win.scrollX,
+          scrollY: win.scrollY,
+          docX: viewport.docX,
+          docY: viewport.docY,
+          width: viewport.width || 0,
+          height: viewport.height || 0,
+        };
+      }
+      return null;
+    }
+
+    function isPointInViewport(point) {
+      const win = frame.contentWindow;
+      return point.x >= 0 && point.y >= 0 && point.x <= win.innerWidth && point.y <= win.innerHeight;
+    }
+
+    function isElementVisible(el) {
+      if (isPageTarget(el)) return true;
+      const rect = el.getBoundingClientRect();
+      const win = frame.contentWindow;
+      return rect.width > 0 && rect.height > 0 && rect.bottom >= 0 && rect.right >= 0 && rect.left <= win.innerWidth && rect.top <= win.innerHeight;
+    }
+
     function resolveAnnotationTarget(item) {
       const el = findElement(item.selector);
       if (el && labelStillMatches(item, el)) {
-        return { el, point: viewportFor(el), visible: true };
+        const point = pointFromStoredViewport(item) || viewportFor(el);
+        return { el, point, visible: isElementVisible(el) && isPointInViewport(point) };
       }
       return { el: null, point: null, visible: false };
     }
@@ -694,7 +803,16 @@
     function focusAnnotation(item, index) {
       let target = resolveAnnotationTarget(item);
       if (target.el) {
-        target.el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        const point = pointFromStoredViewport(item);
+        if (point) {
+          frame.contentWindow.scrollTo({
+            left: Math.max(0, point.docX - frame.contentWindow.innerWidth / 2),
+            top: Math.max(0, point.docY - frame.contentWindow.innerHeight / 2),
+            behavior: "smooth",
+          });
+        } else {
+          target.el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        }
       } else {
         activeId = item.id;
         renderList();
@@ -722,6 +840,31 @@
       hidePinPopover();
       const popover = document.createElement("div");
       popover.className = "pin-popover";
+      if (requirementMode) {
+        popover.innerHTML = `
+          <div class="pin-popover-head">
+            <div style="min-width:0;">
+              <div class="pin-popover-title">
+                <span class="index">${index + 1}</span>
+                <span>需求描述</span>
+              </div>
+              <div class="element" style="margin-top:6px;">${escapeHtml(item.elementLabel || item.selector)}</div>
+            </div>
+            <button class="pin-popover-close" type="button" aria-label="关闭">×</button>
+          </div>
+          <div class="note">${escapeHtml(item.requirement)}</div>
+          <div class="meta">${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
+        `;
+        overlay.appendChild(popover);
+        positionPopover(popover, point);
+        popover.querySelector(".pin-popover-close").addEventListener("click", (event) => {
+          event.stopPropagation();
+          activeId = "";
+          hidePinPopover();
+          renderList();
+        });
+        return;
+      }
       const replies = item.replies || [];
       popover.innerHTML = `
         <div class="pin-popover-head">
@@ -748,6 +891,16 @@
       `;
       overlay.appendChild(popover);
 
+      positionPopover(popover, point);
+      popover.querySelector(".pin-popover-close").addEventListener("click", (event) => {
+        event.stopPropagation();
+        activeId = "";
+        hidePinPopover();
+        renderList();
+      });
+    }
+
+    function positionPopover(popover, point) {
       const margin = 12;
       const gap = 14;
       const overlayRect = overlay.getBoundingClientRect();
@@ -762,25 +915,20 @@
       }
       popover.style.left = `${Math.max(margin, left)}px`;
       popover.style.top = `${Math.max(margin, top)}px`;
-      popover.querySelector(".pin-popover-close").addEventListener("click", (event) => {
-        event.stopPropagation();
-        activeId = "";
-        hidePinPopover();
-        renderList();
-      });
     }
 
     function renderPins() {
       overlay.querySelectorAll(".pin").forEach(pin => pin.remove());
       hidePinPopover();
-      annotations.forEach((item, index) => {
+      const rows = requirementMode ? requirements : annotations;
+      rows.forEach((item, index) => {
         const target = resolveAnnotationTarget(item);
         const point = target.point;
         if (!target.visible || !point) return;
         const pin = document.createElement("button");
         pin.className = `pin ${item.status === "resolved" ? "resolved" : ""}`;
         pin.textContent = index + 1;
-        pin.title = item.note;
+        pin.title = item.note || item.requirement || "";
         pin.style.left = `${point.x}px`;
         pin.style.top = `${point.y}px`;
         pin.addEventListener("click", (event) => {
@@ -797,7 +945,66 @@
       });
     }
 
+    function renderRequirementList() {
+      document.getElementById("openCount").textContent = `需求 ${requirements.length}`;
+      document.getElementById("resolvedCount").textContent = canEditRequirements ? "可编辑" : "只读";
+      if (!requirements.length) {
+        list.innerHTML = `<div class="empty">${canEditRequirements ? "还没有需求描述。进入需求文档模式后，在左侧页面中点击区域即可添加。" : "还没有需求描述。"}</div>`;
+        renderPins();
+        return;
+      }
+      list.innerHTML = requirements.map((item, index) => `
+        <article class="card ${item.id === activeId ? "active" : ""}" data-requirement-card="${item.id}">
+          <div class="card-top">
+            <div class="card-title-row">
+              <div class="index">${index + 1}</div>
+              <div style="min-width:0;">
+                <div class="element">${escapeHtml(item.elementLabel || item.selector)}</div>
+                <div class="meta">${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
+              </div>
+            </div>
+            ${canEditRequirements ? `<div class="card-tools">
+              <button class="icon-button" type="button" title="编辑需求" aria-label="编辑需求" data-edit-requirement="${item.id}">✎</button>
+              <button class="icon-button" type="button" title="删除需求" aria-label="删除需求" data-delete-requirement="${item.id}">×</button>
+            </div>` : ""}
+          </div>
+          <div class="note">${escapeHtml(item.requirement)}</div>
+        </article>
+      `).join("");
+      list.querySelectorAll("[data-edit-requirement]").forEach(button => {
+        button.addEventListener("click", () => {
+          const item = requirements.find(row => row.id === button.dataset.editRequirement);
+          if (item) openRequirement(null, null, item);
+        });
+      });
+      list.querySelectorAll("[data-delete-requirement]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const item = requirements.find(row => row.id === button.dataset.deleteRequirement);
+          if (!item) return;
+          if (!confirm("确定删除这条需求描述吗？")) return;
+          await api(`/api/requirements/${item.id}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ author: author() }),
+          });
+        });
+      });
+      list.querySelectorAll("[data-requirement-card]").forEach(card => {
+        card.addEventListener("click", (event) => {
+          if (event.target.closest("button, input, textarea, form")) return;
+          const item = requirements.find(row => row.id === card.dataset.requirementCard);
+          const index = requirements.findIndex(row => row.id === card.dataset.requirementCard);
+          if (item) focusAnnotation(item, index);
+        });
+      });
+      renderPins();
+    }
+
     function renderList() {
+      if (requirementMode) {
+        renderRequirementList();
+        return;
+      }
       const open = annotations.filter(item => item.status !== "resolved").length;
       const resolved = annotations.length - open;
       document.getElementById("openCount").textContent = `未解决 ${open}`;
@@ -888,20 +1095,72 @@
       renderList();
     }
 
+    async function loadRequirements() {
+      const data = await api(`/api/docs/${encodeURIComponent(docId)}/requirements?author=${encodeURIComponent(author())}`);
+      requirements = data.requirements;
+      canEditRequirements = data.canEdit;
+      if (requirementMode) renderList();
+    }
+
     modeBtn.addEventListener("click", () => {
       annotationMode = !annotationMode;
+      if (annotationMode) requirementMode = false;
+      modeBtn.textContent = annotationMode ? "退出批注" : "开启批注";
+      modeBtn.classList.toggle("active", annotationMode);
+      requirementModeBtn.classList.toggle("active", requirementMode);
+      hoverBox.style.display = "none";
+      activeId = "";
+      renderList();
+      toast(annotationMode ? "批注模式已开启：点击页面元素添加批注" : "已回到正常预览模式");
+    });
+
+    requirementModeBtn.addEventListener("click", async () => {
+      requirementMode = !requirementMode;
+      if (requirementMode) annotationMode = false;
+      requirementModeBtn.classList.toggle("active", requirementMode);
       modeBtn.textContent = annotationMode ? "退出批注" : "开启批注";
       modeBtn.classList.toggle("active", annotationMode);
       hoverBox.style.display = "none";
-      toast(annotationMode ? "批注模式已开启：点击页面元素添加批注" : "已回到正常预览模式");
+      activeId = "";
+      await loadRequirements();
+      renderList();
+      toast(requirementMode ? (canEditRequirements ? "需求文档模式：点击页面区域添加需求" : "需求文档模式：当前姓名只读") : "已回到批注视图");
     });
 
     authorInput.addEventListener("input", () => {
       localStorage.setItem("review-author", authorInput.value.trim());
+      loadRequirements().catch(() => {});
     });
 
-    document.getElementById("refreshBtn").addEventListener("click", loadAnnotations);
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      loadAnnotations();
+      loadRequirements();
+    });
     document.getElementById("cancelComment").addEventListener("click", () => dialog.close());
+    document.getElementById("cancelRequirement").addEventListener("click", () => requirementDialog.close());
+    document.getElementById("generateRequirement").addEventListener("click", async () => {
+      try {
+        if (!selectedRequirementTarget) throw new Error("请先选择页面区域");
+        const button = document.getElementById("generateRequirement");
+        button.disabled = true;
+        button.textContent = "生成中...";
+        const data = await api("/api/requirements/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...selectedRequirementTarget,
+            author: author(),
+          }),
+        });
+        requirementText.value = data.requirement;
+      } catch (error) {
+        toast(error.message);
+      } finally {
+        const button = document.getElementById("generateRequirement");
+        button.disabled = false;
+        button.textContent = "AI 生成";
+      }
+    });
     commentForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       try {
@@ -921,12 +1180,40 @@
       }
     });
 
+    requirementForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        if (!selectedRequirementTarget) throw new Error("请先选择页面区域");
+        const path = editingRequirementId
+          ? `/api/requirements/${editingRequirementId}`
+          : `/api/docs/${encodeURIComponent(docId)}/requirements`;
+        await api(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...selectedRequirementTarget,
+            requirement: requirementText.value,
+            author: author(),
+          }),
+        });
+        requirementDialog.close();
+        toast("需求已保存");
+      } catch (error) {
+        toast(error.message);
+      }
+    });
+
     frame.addEventListener("load", installFrameHandlers);
     loadAnnotations();
+    loadRequirements();
     const events = new EventSource(`/events/docs/${encodeURIComponent(docId)}`);
     events.addEventListener("annotations", (event) => {
       annotations = JSON.parse(event.data);
       renderList();
+    });
+    events.addEventListener("requirements", (event) => {
+      requirements = JSON.parse(event.data);
+      if (requirementMode) renderList();
     });
   </script>
 </body>

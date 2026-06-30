@@ -7,88 +7,147 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #f5f6f8;
-      --panel: #ffffff;
-      --text: #17191f;
-      --muted: #667085;
-      --line: #e4e7ec;
-      --accent: #2563eb;
-      --accent-dark: #1d4ed8;
+      --bg: #f7f7f5;
+      --panel: rgba(255, 255, 255, 0.74);
+      --panel-strong: #ffffff;
+      --text: #191a1c;
+      --muted: #6f737b;
+      --soft: #9aa0aa;
+      --line: #e6e3dc;
+      --line-strong: #d8d4cb;
+      --accent: #1f2937;
+      --accent-dark: #000000;
       --success: #12b76a;
-      --shadow: 0 18px 50px rgba(16, 24, 40, 0.08);
+      --shadow: 0 20px 60px rgba(32, 31, 28, 0.08);
+      --focus: 0 0 0 4px rgba(31, 41, 55, 0.08);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 12% -10%, rgba(255, 255, 255, 0.92), transparent 34%),
+        linear-gradient(180deg, #fbfaf8 0%, var(--bg) 38%, #f3f3f1 100%);
       color: var(--text);
     }
     header {
-      height: 64px;
+      height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
+      padding: 0 clamp(20px, 4vw, 48px);
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(14px);
+      background: rgba(250, 249, 246, 0.78);
+      backdrop-filter: blur(20px);
       position: sticky;
       top: 0;
       z-index: 10;
     }
-    h1 { margin: 0; font-size: 18px; letter-spacing: 0; }
+    h1 { margin: 0; font-size: 15px; letter-spacing: 0; font-weight: 760; }
     main {
-      max-width: 1120px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 28px;
+      padding: 48px 28px 80px;
       display: grid;
-      gap: 20px;
+      gap: 34px;
     }
     .hero {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      padding: 24px;
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
-      gap: 22px;
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+      gap: 56px;
+      align-items: end;
+      padding: 10px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-copy {
+      min-width: 0;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
     }
     .title {
-      font-size: 28px;
-      line-height: 1.2;
-      margin: 0 0 10px;
+      font-size: clamp(31px, 4.1vw, 44px);
+      line-height: 1.08;
+      margin: 0 0 18px;
+      max-width: 760px;
+      font-weight: 820;
     }
     .desc {
       color: var(--muted);
       margin: 0;
-      line-height: 1.7;
-      max-width: 720px;
+      line-height: 1.85;
+      max-width: 660px;
+      font-size: 15px;
     }
-    .panel {
-      background: var(--panel);
+    .hero-editor {
+      display: none;
+      max-width: 680px;
+      margin-top: 20px;
+      padding: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 18px;
+      background: rgba(255, 255, 255, 0.62);
+      gap: 12px;
+    }
+    .hero-editor.open {
+      display: grid;
+    }
+    .hero-editor textarea {
+      width: 100%;
+      min-height: 92px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 12px 13px;
+      font: inherit;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.82);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+    .hero-editor textarea:focus {
+      border-color: #9ca3af;
+      box-shadow: var(--focus);
+      background: #fff;
+    }
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .panel {
+      padding: 0;
+    }
+    .panel > h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      font-weight: 780;
     }
     .server {
       display: grid;
       gap: 10px;
-      font-size: 14px;
+      font-size: 13px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.54);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
     }
     .pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      color: #027a48;
-      background: #ecfdf3;
-      border: 1px solid #abefc6;
+      color: #067647;
+      background: rgba(236, 253, 243, 0.82);
+      border: 1px solid #bbf7d0;
       border-radius: 999px;
-      padding: 6px 10px;
+      padding: 7px 11px;
       width: fit-content;
+      font-size: 13px;
     }
     .dot {
       width: 8px;
@@ -98,23 +157,48 @@
     }
     label {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
       margin-bottom: 8px;
+      font-weight: 650;
     }
-    input[type="text"], input[type="file"] {
+    input[type="text"], input[type="url"], input[type="file"], select {
       width: 100%;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line-strong);
       border-radius: 8px;
-      padding: 11px 12px;
+      padding: 12px 13px;
       font: inherit;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+    input[type="file"] {
+      padding: 8px;
+    }
+    input::placeholder {
+      color: var(--soft);
+    }
+    input[type="file"]::file-selector-button {
+      margin-right: 10px;
+      border: 0;
+      border-radius: 7px;
+      background: #f0efeb;
+      color: var(--text);
+      padding: 8px 10px;
+      font: inherit;
+      cursor: pointer;
+    }
+    input:focus, select:focus {
+      border-color: #9ca3af;
+      box-shadow: var(--focus);
       background: #fff;
     }
     .form-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
-      align-items: end;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
     }
     button, .button {
       border: 0;
@@ -122,8 +206,8 @@
       background: var(--accent);
       color: white;
       font: inherit;
-      font-weight: 650;
-      padding: 11px 14px;
+      font-weight: 720;
+      padding: 11px 15px;
       cursor: pointer;
       text-decoration: none;
       display: inline-flex;
@@ -131,17 +215,65 @@
       justify-content: center;
       min-height: 42px;
       white-space: nowrap;
+      transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
     }
-    button:hover, .button:hover { background: var(--accent-dark); }
+    button:hover, .button:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
+    }
+    button:active, .button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
     .secondary {
-      background: #fff;
+      background: rgba(255, 255, 255, 0.7);
       color: var(--text);
       border: 1px solid var(--line);
     }
-    .secondary:hover { background: #f9fafb; }
+    .secondary:hover {
+      background: #fff;
+      border-color: var(--line-strong);
+      box-shadow: 0 8px 22px rgba(32, 31, 28, 0.08);
+    }
+    .import-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .import-card {
+      min-height: 184px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.86) inset;
+      display: grid;
+      gap: 14px;
+      align-content: space-between;
+      transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    }
+    .import-card:hover {
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .settings-grid .wide {
+      grid-column: 1 / -1;
+    }
     .docs {
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
     .doc {
       display: grid;
@@ -150,8 +282,14 @@
       align-items: center;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 14px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    }
+    .doc:hover {
+      border-color: var(--line-strong);
       background: #fff;
+      box-shadow: 0 14px 38px rgba(32, 31, 28, 0.07);
     }
     .doc h3 {
       margin: 0 0 6px;
@@ -169,6 +307,56 @@
       gap: 8px;
       flex-wrap: wrap;
       justify-content: flex-end;
+      position: relative;
+    }
+    .share-action {
+      position: relative;
+      display: inline-flex;
+    }
+    .share-button {
+      gap: 8px;
+    }
+    .chevron {
+      font-size: 12px;
+      line-height: 1;
+      opacity: 0.72;
+    }
+    .share-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 20;
+      min-width: 260px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 18px 48px rgba(32, 31, 28, 0.14);
+      display: none;
+    }
+    .share-action.open .share-menu {
+      display: grid;
+      gap: 4px;
+    }
+    .share-option {
+      width: 100%;
+      min-height: 34px;
+      justify-content: flex-start;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 650;
+      box-shadow: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .share-option:hover {
+      background: #f5f4f1;
+      color: var(--text);
+      box-shadow: none;
+      transform: none;
     }
     .hint {
       color: var(--muted);
@@ -180,16 +368,31 @@
       color: var(--muted);
       font-size: 13px;
       margin-top: 8px;
+      line-height: 1.55;
+    }
+    .subtle-button {
+      min-height: 34px;
+      padding: 7px 11px;
+      background: rgba(255, 255, 255, 0.66);
+      color: var(--text);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 680;
+    }
+    .subtle-button:hover {
+      background: #fff;
+      border-color: var(--line-strong);
+      box-shadow: 0 8px 22px rgba(32, 31, 28, 0.08);
     }
     .toast {
       position: fixed;
       right: 20px;
       bottom: 20px;
-      background: #111827;
+      background: rgba(25, 26, 28, 0.94);
       color: #fff;
       padding: 12px 14px;
       border-radius: 8px;
-      box-shadow: var(--shadow);
+      box-shadow: 0 18px 40px rgba(25, 26, 28, 0.18);
       opacity: 0;
       transform: translateY(8px);
       transition: 0.18s ease;
@@ -202,8 +405,11 @@
     }
     @media (max-width: 820px) {
       header { padding: 0 18px; }
-      main { padding: 18px; }
-      .hero, .form-grid, .doc { grid-template-columns: 1fr; }
+      main { padding: 28px 18px 56px; gap: 26px; }
+      .hero, .import-grid, .settings-grid, .doc { grid-template-columns: 1fr; }
+      .settings-grid .wide { grid-column: auto; }
+      .editor-actions { justify-content: stretch; }
+      .editor-actions > * { flex: 1; }
       .actions { justify-content: stretch; }
       .actions > * { flex: 1; }
     }
@@ -217,9 +423,26 @@
 
   <main>
     <section class="hero">
-      <div>
-        <h2 class="title">把 HTML demo 变成内网多人评审页面</h2>
-        <p class="desc">选择你的需求 demo，系统会生成一个评审链接。同事在同一个内网里打开链接后，可以输入姓名、选中页面元素、添加批注、回复和标记已解决。</p>
+      <div class="hero-copy">
+        <h2 class="title" id="heroTitle">把 HTML demo 变成内网多人评审页面</h2>
+        <p class="desc" id="heroDesc">选择你的需求 demo，系统会生成一个评审链接。同事在同一个内网里打开链接后，可以输入姓名、选中页面元素、添加批注、回复和标记已解决。</p>
+        <div class="hero-actions">
+          <button class="subtle-button" id="editHeroBtn" type="button">编辑文案</button>
+        </div>
+        <form class="hero-editor" id="heroEditor">
+          <div>
+            <label for="heroTitleInput">标题</label>
+            <input id="heroTitleInput" type="text" />
+          </div>
+          <div>
+            <label for="heroDescInput">描述</label>
+            <textarea id="heroDescInput"></textarea>
+          </div>
+          <div class="editor-actions">
+            <button class="secondary" id="cancelHeroEdit" type="button">取消</button>
+            <button type="submit">保存文案</button>
+          </div>
+        </form>
       </div>
       <div class="panel server">
         <strong>可分享地址</strong>
@@ -229,13 +452,50 @@
 
     <section class="panel">
       <h2>导入 HTML</h2>
-      <form id="uploadForm" class="form-grid">
-        <div>
-          <label for="file">上传 HTML 文件</label>
-          <input id="file" name="file" type="file" accept=".html,text/html" />
-          <div id="fileNamePreview" class="file-name-preview">文档名称会自动使用文件名。</div>
+      <div class="import-grid">
+        <form id="uploadForm" class="form-grid import-card">
+          <div>
+            <label for="file">上传 HTML 文件</label>
+            <input id="file" name="file" type="file" accept=".html,text/html" />
+            <div id="fileNamePreview" class="file-name-preview">导入html格式的文件，可以是文档、demo或者设计图。</div>
+          </div>
+          <button type="submit">导入</button>
+        </form>
+        <form id="urlForm" class="form-grid import-card">
+          <div>
+            <label for="pageUrl">导入可访问链接</label>
+            <input id="pageUrl" name="url" type="url" placeholder="https://example.com/page.html" />
+            <div class="file-name-preview">保存链接的快照到本地，让我们面向竞品描述需求</div>
+          </div>
+          <button type="submit">保存快照</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>AI 与权限设置</h2>
+      <form id="settingsForm" class="settings-grid">
+        <div class="wide">
+          <label for="allowedEditors">需求文档编辑白名单</label>
+          <input id="allowedEditors" type="text" placeholder="张三、李四、产品经理" />
+          <div class="file-name-preview">只有这些姓名可以新增、编辑需求文档和使用 AI 生成。</div>
         </div>
-        <button type="submit">上传导入</button>
+        <div>
+          <label for="aiBaseUrl">AI Base URL</label>
+          <input id="aiBaseUrl" type="url" placeholder="https://api.openai.com/v1" />
+        </div>
+        <div>
+          <label for="aiModel">模型名</label>
+          <input id="aiModel" type="text" placeholder="gpt-4o-mini" />
+        </div>
+        <div class="wide">
+          <label for="aiApiKey">API Key</label>
+          <input id="aiApiKey" type="password" placeholder="留空则保留已保存的 Key" />
+          <div id="aiKeyStatus" class="file-name-preview">尚未配置 API Key。</div>
+        </div>
+        <div class="editor-actions wide">
+          <button type="submit">保存设置</button>
+        </div>
       </form>
     </section>
 
@@ -250,7 +510,24 @@
   <script>
     const docsEl = document.getElementById("docs");
     const toastEl = document.getElementById("toast");
+    const heroTitleEl = document.getElementById("heroTitle");
+    const heroDescEl = document.getElementById("heroDesc");
+    const heroEditor = document.getElementById("heroEditor");
+    const heroTitleInput = document.getElementById("heroTitleInput");
+    const heroDescInput = document.getElementById("heroDescInput");
+    const allowedEditorsInput = document.getElementById("allowedEditors");
+    const aiBaseUrlInput = document.getElementById("aiBaseUrl");
+    const aiModelInput = document.getElementById("aiModel");
+    const aiApiKeyInput = document.getElementById("aiApiKey");
+    const aiKeyStatus = document.getElementById("aiKeyStatus");
+    const defaultHeroCopy = {
+      title: heroTitleEl.textContent,
+      desc: heroDescEl.textContent,
+    };
+    const defaultFileHint = "导入html格式的文件，可以是文档、demo或者设计图。";
     let config = null;
+    let shareOrigin = location.origin;
+    let shareOrigins = [location.origin];
 
     function toast(message) {
       toastEl.textContent = message;
@@ -269,11 +546,6 @@
       return `${location.origin}/review/${doc.id}`;
     }
 
-    function lanUrl(doc) {
-      const ip = config && config.localIps && config.localIps[0];
-      return ip ? `http://${ip}:${config.port}/review/${doc.id}` : reviewUrl(doc);
-    }
-
     async function copy(text) {
       await navigator.clipboard.writeText(text);
       toast("链接已复制");
@@ -282,8 +554,33 @@
     async function loadConfig() {
       config = await api("/api/config");
       const links = document.getElementById("serverLinks");
-      const items = [`本机：${location.origin}`].concat((config.localIps || []).map(ip => `内网：http://${ip}:${config.port}`));
-      links.innerHTML = items.map(item => `<div class="meta">${item}</div>`).join("");
+      const origins = [location.origin].concat((config.localIps || []).map(ip => `http://${ip}:${config.port}`));
+      shareOrigins = Array.from(new Set(origins));
+      const savedOrigin = localStorage.getItem("echo-share-origin");
+      shareOrigin = shareOrigins.includes(savedOrigin) ? savedOrigin : shareOrigins[0];
+      links.innerHTML = shareOrigins.map((origin, index) => {
+        const label = index === 0 ? "本机" : `可选地址 ${index}`;
+        return `<div class="meta">${label}：${escapeHtml(origin)}</div>`;
+      }).join("");
+    }
+
+    function shareUrl(doc, origin = shareOrigin) {
+      return `${origin}/review/${doc.id}`;
+    }
+
+    function shareOptions(doc) {
+      return shareOrigins.map((origin, index) => {
+        const label = index === 0 ? `本机：${origin}` : `可选地址 ${index}：${origin}`;
+        return `<button class="share-option" type="button" data-share-origin="${escapeHtml(origin)}" data-share-doc="${escapeHtml(doc.id)}">${escapeHtml(label)}</button>`;
+      }).join("");
+    }
+
+    async function loadSettings() {
+      const { settings } = await api("/api/settings");
+      allowedEditorsInput.value = (settings.allowedEditors || []).join("、");
+      aiBaseUrlInput.value = settings.ai.baseUrl || "https://api.openai.com/v1";
+      aiModelInput.value = settings.ai.model || "gpt-4o-mini";
+      aiKeyStatus.textContent = settings.ai.hasApiKey ? "已保存 API Key；留空提交会继续沿用。" : "尚未配置 API Key。";
     }
 
     async function loadDocs() {
@@ -297,17 +594,40 @@
           <div>
             <h3>${escapeHtml(doc.title)}</h3>
             <div class="meta">ID：${escapeHtml(doc.id)} · 文件：${escapeHtml(doc.filename || "")}</div>
-            <div class="meta">评审链接：${escapeHtml(lanUrl(doc))}</div>
+            ${doc.sourceUrl ? `<div class="meta">来源：${escapeHtml(doc.sourceUrl)}</div>` : ""}
+            <div class="meta">评审链接：${escapeHtml(shareUrl(doc))}</div>
           </div>
           <div class="actions">
-            <a class="button" href="/review/${encodeURIComponent(doc.id)}" target="_blank">打开评审</a>
-            <button class="secondary" type="button" data-copy="${escapeHtml(lanUrl(doc))}">复制内网链接</button>
+            <a class="button" href="/review/${encodeURIComponent(doc.id)}" target="_blank">开始</a>
+            <div class="share-action">
+              <button class="secondary share-button" type="button" data-share-toggle="${escapeHtml(doc.id)}">复制分享链接 <span class="chevron">⌄</span></button>
+              <div class="share-menu">${shareOptions(doc)}</div>
+            </div>
             <a class="button secondary" href="/api/docs/${encodeURIComponent(doc.id)}/export">导出批注</a>
           </div>
         </article>
       `).join("");
-      docsEl.querySelectorAll("[data-copy]").forEach(btn => {
-        btn.addEventListener("click", () => copy(btn.dataset.copy));
+      docsEl.querySelectorAll("[data-share-toggle]").forEach(btn => {
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const action = btn.closest(".share-action");
+          docsEl.querySelectorAll(".share-action.open").forEach(item => {
+            if (item !== action) item.classList.remove("open");
+          });
+          action.classList.toggle("open");
+        });
+      });
+      docsEl.querySelectorAll("[data-share-origin]").forEach(btn => {
+        btn.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          const doc = docs.find(item => item.id === btn.dataset.shareDoc);
+          if (!doc) return;
+          shareOrigin = btn.dataset.shareOrigin;
+          localStorage.setItem("echo-share-origin", shareOrigin);
+          await copy(shareUrl(doc, shareOrigin));
+          btn.closest(".share-action").classList.remove("open");
+          loadDocs();
+        });
       });
     }
 
@@ -317,11 +637,53 @@
       }[ch]));
     }
 
+    function applyHeroCopy(copy) {
+      heroTitleEl.textContent = copy.title || defaultHeroCopy.title;
+      heroDescEl.textContent = copy.desc || defaultHeroCopy.desc;
+    }
+
+    function loadHeroCopy() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("echo-hero-copy") || "null");
+        if (saved && (saved.title || saved.desc)) applyHeroCopy(saved);
+      } catch {
+        applyHeroCopy(defaultHeroCopy);
+      }
+    }
+
+    function openHeroEditor() {
+      heroTitleInput.value = heroTitleEl.textContent;
+      heroDescInput.value = heroDescEl.textContent;
+      heroEditor.classList.add("open");
+      setTimeout(() => heroTitleInput.focus(), 40);
+    }
+
+    function closeHeroEditor() {
+      heroEditor.classList.remove("open");
+    }
+
+    document.getElementById("editHeroBtn").addEventListener("click", openHeroEditor);
+    document.getElementById("cancelHeroEdit").addEventListener("click", closeHeroEditor);
+    document.addEventListener("click", () => {
+      docsEl.querySelectorAll(".share-action.open").forEach(item => item.classList.remove("open"));
+    });
+    heroEditor.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const copy = {
+        title: heroTitleInput.value.trim() || defaultHeroCopy.title,
+        desc: heroDescInput.value.trim() || defaultHeroCopy.desc,
+      };
+      localStorage.setItem("echo-hero-copy", JSON.stringify(copy));
+      applyHeroCopy(copy);
+      closeHeroEditor();
+      toast("文案已保存");
+    });
+
     document.getElementById("file").addEventListener("change", (event) => {
       const file = event.currentTarget.files && event.currentTarget.files[0];
       document.getElementById("fileNamePreview").textContent = file
         ? `文档名称：${file.name.replace(/\.html?$/i, "")}`
-        : "文档名称会自动使用文件名。";
+        : defaultFileHint;
     });
 
     document.getElementById("uploadForm").addEventListener("submit", async (event) => {
@@ -339,14 +701,58 @@
         });
         toast("已上传 HTML");
         form.reset();
-        document.getElementById("fileNamePreview").textContent = "文档名称会自动使用文件名。";
+        document.getElementById("fileNamePreview").textContent = defaultFileHint;
         loadDocs();
       } catch (error) {
         toast(error.message);
       }
     });
 
+    document.getElementById("urlForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        const pageUrl = document.getElementById("pageUrl").value.trim();
+        if (!pageUrl) throw new Error("请输入页面链接");
+        await api("/api/docs/import-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: pageUrl }),
+        });
+        toast("已保存页面快照");
+        form.reset();
+        loadDocs();
+      } catch (error) {
+        toast(error.message);
+      }
+    });
+
+    document.getElementById("settingsForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        await api("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            allowedEditors: allowedEditorsInput.value,
+            ai: {
+              baseUrl: aiBaseUrlInput.value,
+              model: aiModelInput.value,
+              apiKey: aiApiKeyInput.value,
+            },
+          }),
+        });
+        aiApiKeyInput.value = "";
+        await loadSettings();
+        toast("设置已保存");
+      } catch (error) {
+        toast(error.message);
+      }
+    });
+
+    loadHeroCopy();
     loadConfig().then(loadDocs);
+    loadSettings().catch((error) => toast(error.message));
   </script>
 </body>
 </html>

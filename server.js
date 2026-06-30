@@ -1,4 +1,5 @@
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -11,17 +12,47 @@ const DOCS_DIR = path.join(DATA_DIR, "docs");
 const STORE_FILE = path.join(DATA_DIR, "store.json");
 const PORT = Number(process.env.PORT || 5177);
 const HOST = process.env.HOST || "0.0.0.0";
+const MAX_REMOTE_HTML_BYTES = 10 * 1024 * 1024;
 
 fs.mkdirSync(DOCS_DIR, { recursive: true });
 
+function defaultStore() {
+  return {
+    docs: [],
+    annotations: [],
+    replies: [],
+    requirements: [],
+    settings: {
+      allowedEditors: ["张三", "李四", "产品经理"],
+      ai: {
+        apiKey: "",
+        baseUrl: "https://api.openai.com/v1",
+        model: "gpt-4o-mini",
+      },
+    },
+  };
+}
+
+function normalizeStore(store) {
+  const next = { ...defaultStore(), ...(store || {}) };
+  next.docs = Array.isArray(next.docs) ? next.docs : [];
+  next.annotations = Array.isArray(next.annotations) ? next.annotations : [];
+  next.replies = Array.isArray(next.replies) ? next.replies : [];
+  next.requirements = Array.isArray(next.requirements) ? next.requirements : [];
+  next.settings = { ...defaultStore().settings, ...(next.settings || {}) };
+  next.settings.allowedEditors = Array.isArray(next.settings.allowedEditors) ? next.settings.allowedEditors : [];
+  next.settings.ai = { ...defaultStore().settings.ai, ...(next.settings.ai || {}) };
+  return next;
+}
+
 function readStore() {
   if (!fs.existsSync(STORE_FILE)) {
-    return { docs: [], annotations: [], replies: [] };
+    return defaultStore();
   }
   try {
-    return JSON.parse(fs.readFileSync(STORE_FILE, "utf8"));
+    return normalizeStore(JSON.parse(fs.readFileSync(STORE_FILE, "utf8")));
   } catch {
-    return { docs: [], annotations: [], replies: [] };
+    return defaultStore();
   }
 }
 
@@ -53,6 +84,23 @@ function titleFromFilename(filename) {
   return String(filename || "Untitled review").replace(/\.html?$/i, "") || "Untitled review";
 }
 
+function titleFromUrl(value) {
+  try {
+    const remoteUrl = new URL(value);
+    const name = path.basename(remoteUrl.pathname) || remoteUrl.hostname;
+    return titleFromFilename(decodeURIComponent(name));
+  } catch {
+    return "URL snapshot";
+  }
+}
+
+function titleFromHtml(html, fallback) {
+  const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+  if (!match) return fallback;
+  const title = match[1].replace(/\s+/g, " ").trim();
+  return title || fallback;
+}
+
 function json(res, status, body) {
   const text = JSON.stringify(body);
   res.writeHead(status, {
@@ -74,6 +122,15 @@ function readBody(req) {
 
 function safeDocFile(docId) {
   return path.join(DOCS_DIR, `${docId}.html`);
+}
+
+function injectBaseHref(html, href) {
+  const base = `<base href="${String(href).replace(/"/g, "&quot;")}">`;
+  if (/<base\s/i.test(html)) return html;
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head([^>]*)>/i, `<head$1>\n  ${base}`);
+  }
+  return `${base}\n${html}`;
 }
 
 function routeDocId(value) {
@@ -118,6 +175,130 @@ function listAnnotations(store, docId) {
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 }
 
+function listRequirements(store, docId) {
+  return store.requirements
+    .filter((item) => item.docId === docId)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+}
+
+function publicSettings(settings) {
+  const ai = settings.ai || {};
+  return {
+    allowedEditors: settings.allowedEditors || [],
+    ai: {
+      baseUrl: ai.baseUrl || defaultStore().settings.ai.baseUrl,
+      model: ai.model || defaultStore().settings.ai.model,
+      hasApiKey: Boolean(ai.apiKey),
+    },
+  };
+}
+
+function splitNames(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+  return String(value || "")
+    .split(/[,，\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function canEditRequirements(store, author) {
+  const allowed = store.settings.allowedEditors || [];
+  if (!allowed.length) return true;
+  return allowed.includes(String(author || "").trim());
+}
+
+function requireRequirementEditor(store, author) {
+  if (!canEditRequirements(store, author)) {
+    throw new Error("当前姓名没有编辑需求文档的权限");
+  }
+}
+
+function truncateText(value, maxLength) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+}
+
+function requestJson(targetUrl, payload, headers = {}) {
+  return new Promise((resolve, reject) => {
+    let remoteUrl;
+    try {
+      remoteUrl = new URL(targetUrl);
+    } catch {
+      reject(new Error("AI 服务地址无效"));
+      return;
+    }
+    const body = JSON.stringify(payload);
+    const client = remoteUrl.protocol === "https:" ? https : http;
+    const req = client.request(
+      remoteUrl,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
+          ...headers,
+        },
+        timeout: 30000,
+      },
+      (remoteRes) => {
+        const chunks = [];
+        remoteRes.on("data", (chunk) => chunks.push(chunk));
+        remoteRes.on("end", () => {
+          const text = Buffer.concat(chunks).toString("utf8");
+          if ((remoteRes.statusCode || 0) < 200 || (remoteRes.statusCode || 0) >= 300) {
+            reject(new Error(`AI 服务请求失败：HTTP ${remoteRes.statusCode} ${text.slice(0, 200)}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(text));
+          } catch {
+            reject(new Error("AI 服务返回内容不是有效 JSON"));
+          }
+        });
+      }
+    );
+    req.on("timeout", () => req.destroy(new Error("AI 服务请求超时")));
+    req.on("error", reject);
+    req.end(body);
+  });
+}
+
+async function generateRequirement(settings, body) {
+  const ai = settings.ai || {};
+  if (!ai.apiKey) throw new Error("请先在首页配置 AI API Key");
+  const baseUrl = String(ai.baseUrl || defaultStore().settings.ai.baseUrl).replace(/\/+$/, "");
+  const model = String(ai.model || defaultStore().settings.ai.model).trim();
+  const payload = {
+    model,
+    temperature: 0.2,
+    messages: [
+      {
+        role: "system",
+        content:
+          "你是一名资深产品经理。请根据用户选择的页面区域代码、可见文本和上下文，按照行业惯例输出清晰、可执行的中文需求描述。聚焦功能目标、用户交互、状态规则、异常边界和验收要点。不要编造页面中不存在的业务事实。",
+      },
+      {
+        role: "user",
+        content: [
+          `页面标题：${truncateText(body.pageTitle, 200)}`,
+          `选中元素：${truncateText(body.elementLabel, 200)}`,
+          `可见文本：${truncateText(body.elementText, 1200)}`,
+          `HTML：${truncateText(body.elementHtml, 5000)}`,
+          "请输出 4-8 条精炼需求描述，适合直接放入需求文档。",
+        ].join("\n\n"),
+      },
+    ],
+  };
+  const data = await requestJson(`${baseUrl}/chat/completions`, payload, {
+    Authorization: `Bearer ${ai.apiKey}`,
+  });
+  const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  if (!content) throw new Error("AI 服务没有返回需求描述");
+  return String(content).trim();
+}
+
 function parseMultipart(buffer, contentType) {
   const match = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType || "");
   if (!match) return null;
@@ -148,6 +329,75 @@ function parseMultipart(buffer, contentType) {
     }
   }
   return { fields, files };
+}
+
+function fetchRemoteHtml(target, redirectCount = 0) {
+  return new Promise((resolve, reject) => {
+    let remoteUrl;
+    try {
+      remoteUrl = new URL(target);
+    } catch {
+      reject(new Error("请输入有效的链接"));
+      return;
+    }
+    if (!["http:", "https:"].includes(remoteUrl.protocol)) {
+      reject(new Error("只支持 http 或 https 链接"));
+      return;
+    }
+
+    const client = remoteUrl.protocol === "https:" ? https : http;
+    const req = client.get(
+      remoteUrl,
+      {
+        headers: {
+          "User-Agent": "EchoReviewAssistant/1.0",
+          Accept: "text/html,application/xhtml+xml",
+        },
+        timeout: 15000,
+      },
+      (remoteRes) => {
+        const status = remoteRes.statusCode || 0;
+        if ([301, 302, 303, 307, 308].includes(status) && remoteRes.headers.location) {
+          remoteRes.resume();
+          if (redirectCount >= 5) {
+            reject(new Error("链接重定向次数过多"));
+            return;
+          }
+          resolve(fetchRemoteHtml(new URL(remoteRes.headers.location, remoteUrl).toString(), redirectCount + 1));
+          return;
+        }
+        if (status < 200 || status >= 300) {
+          remoteRes.resume();
+          reject(new Error(`链接访问失败：HTTP ${status}`));
+          return;
+        }
+
+        const contentType = String(remoteRes.headers["content-type"] || "");
+        if (contentType && !/text\/html|application\/xhtml\+xml/i.test(contentType)) {
+          remoteRes.resume();
+          reject(new Error("链接返回的不是 HTML 页面"));
+          return;
+        }
+
+        const chunks = [];
+        let size = 0;
+        remoteRes.on("data", (chunk) => {
+          size += chunk.length;
+          if (size > MAX_REMOTE_HTML_BYTES) {
+            req.destroy(new Error("页面太大，无法保存快照"));
+            return;
+          }
+          chunks.push(chunk);
+        });
+        remoteRes.on("end", () => {
+          const html = Buffer.concat(chunks).toString("utf8");
+          resolve({ html: injectBaseHref(html, remoteUrl.toString()), finalUrl: remoteUrl.toString() });
+        });
+      }
+    );
+    req.on("timeout", () => req.destroy(new Error("链接访问超时")));
+    req.on("error", reject);
+  });
 }
 
 function importHtmlFile(sourcePath, title) {
@@ -198,6 +448,30 @@ async function handleApi(req, res, url) {
     return json(res, 200, { docs: store.docs });
   }
 
+  if (req.method === "GET" && url.pathname === "/api/settings") {
+    return json(res, 200, { settings: publicSettings(store.settings) });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/settings") {
+    try {
+      const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+      store.settings.allowedEditors = splitNames(body.allowedEditors);
+      store.settings.ai = {
+        ...store.settings.ai,
+        baseUrl: String((body.ai && body.ai.baseUrl) || store.settings.ai.baseUrl || defaultStore().settings.ai.baseUrl).trim(),
+        model: String((body.ai && body.ai.model) || store.settings.ai.model || defaultStore().settings.ai.model).trim(),
+      };
+      if (body.ai && Object.prototype.hasOwnProperty.call(body.ai, "apiKey")) {
+        const apiKey = String(body.ai.apiKey || "").trim();
+        if (apiKey) store.settings.ai.apiKey = apiKey;
+      }
+      writeStore(store);
+      return json(res, 200, { settings: publicSettings(store.settings) });
+    } catch (error) {
+      return json(res, 400, { error: error.message });
+    }
+  }
+
   if (req.method === "POST" && url.pathname === "/api/docs/import-path") {
     try {
       const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
@@ -221,6 +495,32 @@ async function handleApi(req, res, url) {
         title,
         filename: file.filename,
         sourcePath: "",
+        createdAt: new Date().toISOString(),
+      };
+      store.docs.unshift(doc);
+      writeStore(store);
+      return json(res, 201, { doc });
+    } catch (error) {
+      return json(res, 400, { error: error.message });
+    }
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/docs/import-url") {
+    try {
+      const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+      const sourceUrl = String(body.url || "").trim();
+      if (!sourceUrl) throw new Error("请输入页面链接");
+      const snapshot = await fetchRemoteHtml(sourceUrl);
+      const fallbackTitle = titleFromUrl(snapshot.finalUrl);
+      const title = String(body.title || titleFromHtml(snapshot.html, fallbackTitle)).trim();
+      const docId = uniqueDocId(title, store);
+      fs.writeFileSync(safeDocFile(docId), snapshot.html, "utf8");
+      const doc = {
+        id: docId,
+        title,
+        filename: `${docId}.html`,
+        sourcePath: "",
+        sourceUrl: snapshot.finalUrl,
         createdAt: new Date().toISOString(),
       };
       store.docs.unshift(doc);
@@ -302,6 +602,88 @@ async function handleApi(req, res, url) {
     const payload = listAnnotations(store, annotation.docId);
     broadcast(annotation.docId, "annotations", payload);
     return json(res, 200, { ok: true });
+  }
+
+  const requirementsMatch = /^\/api\/docs\/([^/]+)\/requirements$/.exec(url.pathname);
+  if (requirementsMatch && req.method === "GET") {
+    return json(res, 200, {
+      requirements: listRequirements(store, routeDocId(requirementsMatch[1])),
+      canEdit: canEditRequirements(store, url.searchParams.get("author")),
+    });
+  }
+  if (requirementsMatch && req.method === "POST") {
+    try {
+      const docId = routeDocId(requirementsMatch[1]);
+      const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+      requireRequirementEditor(store, body.author);
+      const item = {
+        id: crypto.randomUUID(),
+        docId,
+        selector: String(body.selector || ""),
+        elementLabel: String(body.elementLabel || ""),
+        requirement: String(body.requirement || "").trim(),
+        author: String(body.author || "匿名"),
+        viewport: body.viewport || null,
+        elementHtml: String(body.elementHtml || "").slice(0, 20000),
+        elementText: String(body.elementText || "").slice(0, 8000),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      if (!item.requirement) return json(res, 400, { error: "需求描述不能为空" });
+      store.requirements.push(item);
+      writeStore(store);
+      const payload = listRequirements(store, docId);
+      broadcast(docId, "requirements", payload);
+      return json(res, 201, { requirement: item });
+    } catch (error) {
+      return json(res, 400, { error: error.message });
+    }
+  }
+
+  const requirementMatch = /^\/api\/requirements\/([^/]+)$/.exec(url.pathname);
+  if (requirementMatch && req.method === "POST") {
+    try {
+      const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+      requireRequirementEditor(store, body.author);
+      const item = store.requirements.find((row) => row.id === requirementMatch[1]);
+      if (!item) return json(res, 404, { error: "需求记录不存在" });
+      item.requirement = String(body.requirement || "").trim();
+      item.author = String(body.author || item.author || "匿名");
+      item.updatedAt = new Date().toISOString();
+      if (!item.requirement) return json(res, 400, { error: "需求描述不能为空" });
+      writeStore(store);
+      const payload = listRequirements(store, item.docId);
+      broadcast(item.docId, "requirements", payload);
+      return json(res, 200, { requirement: item });
+    } catch (error) {
+      return json(res, 400, { error: error.message });
+    }
+  }
+  if (requirementMatch && req.method === "DELETE") {
+    try {
+      const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+      requireRequirementEditor(store, body.author);
+      const item = store.requirements.find((row) => row.id === requirementMatch[1]);
+      if (!item) return json(res, 404, { error: "需求记录不存在" });
+      store.requirements = store.requirements.filter((row) => row.id !== item.id);
+      writeStore(store);
+      const payload = listRequirements(store, item.docId);
+      broadcast(item.docId, "requirements", payload);
+      return json(res, 200, { ok: true });
+    } catch (error) {
+      return json(res, 400, { error: error.message });
+    }
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/requirements/generate") {
+    try {
+      const body = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+      requireRequirementEditor(store, body.author);
+      const requirement = await generateRequirement(store.settings, body);
+      return json(res, 200, { requirement });
+    } catch (error) {
+      return json(res, 400, { error: error.message });
+    }
   }
 
   const exportMatch = /^\/api\/docs\/([^/]+)\/export$/.exec(url.pathname);

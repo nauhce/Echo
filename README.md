@@ -8,26 +8,30 @@ It lets you run a small web service on your own computer, import an HTML demo, a
 
 - Runs locally on your machine.
 - Shares review pages over your LAN or VPN.
-- Imports standalone HTML demo files.
+- Imports standalone HTML demo files or saves HTML snapshots from reachable URLs.
 - Lets reviewers annotate page elements and UI regions.
 - Keeps comments synced for everyone using the same local service.
 - Supports replies and resolved / reopened states.
 - Hides annotation pins when the original element is no longer visible because of pagination, filtering, or collapsed content.
 - Keeps all review data on your local machine.
 
+## Current Notes
+
+- The requirement-document mode is an early, unfinished module. Basic storage, permissions, and AI-generation plumbing are present, but the workflow still needs more testing and polish before it should be considered complete.
+
 ## Quick Start
 
 On Windows:
 
-1. Double-click `启动评审助手.bat`.
+1. Double-click `Echo.bat`.
 2. The console page opens automatically at:
 
    ```text
    http://localhost:5177
    ```
 
-3. Import an HTML file from the console.
-4. Copy the LAN review link shown in the console, for example:
+3. Import an HTML file from the console, or paste a reachable page URL to save a snapshot.
+4. Choose the share address that teammates can reach, then copy the review link shown in the console, for example:
 
    ```text
    http://192.168.x.x:5177/review/your-document
@@ -64,6 +68,8 @@ Imported HTML copies are stored locally:
 data/docs/
 ```
 
+URL imports save the fetched HTML in the same folder. A `<base>` tag is added when needed so relative images, styles, and scripts can still load from the original page URL.
+
 These runtime files are ignored by Git by default.
 
 ## Troubleshooting
@@ -72,6 +78,7 @@ If teammates cannot open the review link, check:
 
 - The startup window is still open.
 - You sent the LAN IP link, not `localhost`.
+- If VPN creates multiple IP addresses, choose the reachable address in the console before copying the review link.
 - Everyone is on the same LAN or VPN.
 - Windows Firewall allows access to port `5177`.
 - Port `5177` is not already used by another process.
