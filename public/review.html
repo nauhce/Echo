@@ -3,451 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>评审批注</title>
-  <style>
-    :root {
-      --bg: #f4f5f7;
-      --panel: #fff;
-      --text: #17191f;
-      --muted: #667085;
-      --line: #e4e7ec;
-      --accent: #2563eb;
-      --accent-dark: #1d4ed8;
-      --warn: #f59e0b;
-      --green: #12b76a;
-      --shadow: 0 18px 50px rgba(16, 24, 40, 0.12);
-      --sidebar: 360px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      height: 100vh;
-      overflow: hidden;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
-      color: var(--text);
-      background: var(--bg);
-    }
-    .topbar {
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(12px);
-      position: relative;
-      z-index: 20;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .brand strong {
-      font-size: 15px;
-      white-space: nowrap;
-    }
-    .status {
-      color: var(--muted);
-      font-size: 13px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    button, input, textarea {
-      font: inherit;
-    }
-    button {
-      min-height: 36px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--text);
-      padding: 8px 11px;
-      cursor: pointer;
-      font-weight: 650;
-      white-space: nowrap;
-    }
-    button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-    button.primary:hover { background: var(--accent-dark); }
-    button.active {
-      background: #fff7ed;
-      border-color: #fdba74;
-      color: #c2410c;
-      box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.16);
-    }
-    button.active:hover {
-      background: #ffedd5;
-      border-color: #fb923c;
-      color: #9a3412;
-    }
-    .layout {
-      height: calc(100vh - 56px);
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) var(--sidebar);
-    }
-    .stage {
-      position: relative;
-      overflow: hidden;
-      background: #e5e7eb;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #fff;
-      display: block;
-    }
-    .overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .hover-box {
-      position: absolute;
-      border: 2px solid var(--accent);
-      background: rgba(37, 99, 235, 0.08);
-      border-radius: 4px;
-      display: none;
-    }
-    .pin {
-      position: absolute;
-      width: 26px;
-      height: 26px;
-      min-width: 26px;
-      min-height: 26px;
-      border-radius: 50%;
-      background: var(--warn);
-      color: #111827;
-      border: 2px solid #fff;
-      box-shadow: var(--shadow);
-      display: grid;
-      place-items: center;
-      padding: 0;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1;
-      text-align: center;
-      pointer-events: auto;
-      cursor: pointer;
-      transform: translate(-50%, -50%);
-    }
-    .pin.resolved {
-      background: var(--green);
-      color: #fff;
-    }
-    .pin-popover {
-      position: absolute;
-      width: 320px;
-      max-width: calc(100% - 24px);
-      max-height: 320px;
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: var(--shadow);
-      padding: 12px;
-      display: grid;
-      gap: 10px;
-      pointer-events: auto;
-      z-index: 3;
-    }
-    .pin-popover-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .pin-popover-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-      font-weight: 750;
-      font-size: 14px;
-    }
-    .pin-popover-close {
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
-      min-height: 28px;
-      border-radius: 50%;
-      padding: 0;
-      display: grid;
-      place-items: center;
-      line-height: 1;
-      color: var(--muted);
-      flex: 0 0 auto;
-    }
-    .pin-popover .note {
-      font-size: 14px;
-    }
-    .pin-popover-replies {
-      display: grid;
-      gap: 8px;
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
-    }
-    .focus-box {
-      position: absolute;
-      border: 3px solid var(--accent);
-      border-radius: 8px;
-      background: rgba(37, 99, 235, 0.1);
-      box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.12);
-      pointer-events: none;
-      z-index: 2;
-      animation: focusPulse 1.2s ease-in-out 2;
-    }
-    @keyframes focusPulse {
-      0%, 100% {
-        opacity: 0.25;
-        transform: scale(0.98);
-      }
-      45% {
-        opacity: 1;
-        transform: scale(1.02);
-      }
-    }
-    aside {
-      border-left: 1px solid var(--line);
-      background: var(--panel);
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      min-height: 0;
-    }
-    .side-head {
-      padding: 16px;
-      border-bottom: 1px solid var(--line);
-      display: grid;
-      gap: 10px;
-    }
-    .person {
-      display: grid;
-      gap: 7px;
-    }
-    .person label, .field label {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    input, textarea {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px 10px;
-      outline: none;
-      background: #fff;
-    }
-    textarea {
-      min-height: 88px;
-      resize: vertical;
-      line-height: 1.5;
-    }
-    .counts {
-      display: flex;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .list {
-      overflow: auto;
-      padding: 12px;
-      display: grid;
-      gap: 10px;
-      flex: 1 1 auto;
-      min-height: 0;
-      align-content: start;
-    }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
-      display: grid;
-      gap: 10px;
-      background: #fff;
-    }
-    .card.active {
-      border-color: #93c5fd;
-      box-shadow: 0 0 0 3px #eff6ff;
-    }
-    .card.resolved {
-      background: #f8fafc;
-    }
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: flex-start;
-    }
-    .card-title-row {
-      display: flex;
-      gap: 8px;
-      min-width: 0;
-    }
-    .card-tools {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 0 0 auto;
-    }
-    .icon-button {
-      width: 30px;
-      height: 30px;
-      min-width: 30px;
-      min-height: 30px;
-      padding: 0;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      color: var(--muted);
-      line-height: 1;
-      font-size: 16px;
-    }
-    .icon-button:hover {
-      color: #b42318;
-      border-color: #fecaca;
-      background: #fef2f2;
-    }
-    .card-actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 8px;
-    }
-    .status-button {
-      min-height: 32px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-    }
-    .index {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #fef3c7;
-      display: grid;
-      place-items: center;
-      font-size: 12px;
-      font-weight: 800;
-      flex: 0 0 auto;
-    }
-    .resolved .index {
-      background: #dcfce7;
-      color: #166534;
-    }
-    .element {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-      word-break: break-word;
-    }
-    .note {
-      white-space: pre-wrap;
-      line-height: 1.55;
-      word-break: break-word;
-    }
-    .meta {
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .reply {
-      border-left: 3px solid #dbeafe;
-      padding-left: 8px;
-      display: grid;
-      gap: 4px;
-    }
-    .reply-form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-    }
-    .ai-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .ai-row .meta {
-      flex: 1 1 180px;
-    }
-    .empty {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.7;
-      padding: 16px;
-      border: 1px dashed var(--line);
-      border-radius: 8px;
-      background: #fafafa;
-    }
-    dialog {
-      border: 0;
-      border-radius: 8px;
-      padding: 0;
-      width: min(460px, calc(100vw - 32px));
-      box-shadow: var(--shadow);
-    }
-    dialog::backdrop { background: rgba(15, 23, 42, 0.35); }
-    .modal {
-      padding: 16px;
-      display: grid;
-      gap: 14px;
-    }
-    .modal h2 {
-      font-size: 18px;
-      margin: 0;
-    }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 20px;
-      transform: translate(-50%, 8px);
-      background: #111827;
-      color: #fff;
-      padding: 10px 13px;
-      border-radius: 8px;
-      opacity: 0;
-      transition: 0.18s ease;
-      z-index: 100;
-      pointer-events: none;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-    @media (max-width: 900px) {
-      :root { --sidebar: 320px; }
-      .status { display: none; }
-    }
-  </style>
+  <title>协作</title>
+  <link rel="stylesheet" href="/assets/review.css" />
+
 </head>
-<body>
+<body class="identity-locked">
   <header class="topbar">
     <div class="brand">
-      <strong>评审批注</strong>
+      <strong>协作</strong>
       <span class="status" id="docStatus"></span>
     </div>
     <div class="actions">
-      <button id="requirementModeBtn" type="button">需求文档</button>
-      <button id="modeBtn" class="primary" type="button">开启批注</button>
-      <button id="refreshBtn" type="button">刷新批注</button>
-      <a id="exportLink"><button type="button">导出</button></a>
+      <div class="action-group" aria-label="协作工具">
+        <div class="tool-button-wrap" data-tooltip="查看">
+          <button id="commentViewBtn" class="toolbar-icon" type="button" aria-label="查看">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span class="toolbar-label">查看</span>
+          </button>
+        </div>
+        <div class="tool-button-wrap" id="commentModeWrap" data-tooltip="评论">
+          <button id="modeBtn" class="toolbar-icon" type="button" aria-label="评论">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path>
+            </svg>
+            <span class="toolbar-label">评论</span>
+          </button>
+        </div>
+        <div class="tool-button-wrap" id="requirementEditWrap" data-tooltip="需求">
+          <button id="requirementEditBtn" class="toolbar-icon" type="button" aria-label="需求">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+            </svg>
+            <span class="toolbar-label">需求</span>
+          </button>
+        </div>
+      </div>
+      <div class="tool-button-wrap" data-tooltip="刷新">
+        <button id="refreshBtn" class="toolbar-icon" type="button" aria-label="刷新">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M21 12a9 9 0 0 1-15.5 6.2"></path>
+            <path d="M3 12A9 9 0 0 1 18.5 5.8"></path>
+            <path d="M7 18H3v4"></path>
+            <path d="M17 6h4V2"></path>
+          </svg>
+          <span class="toolbar-label">刷新</span>
+        </button>
+      </div>
+      <div class="tool-button-wrap" data-tooltip="导出的批注可以给AI，让AI按照批注修改">
+        <a id="exportLink" aria-label="导出">
+          <button class="toolbar-icon" type="button" aria-label="导出">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <path d="M7 10l5 5 5-5"></path>
+              <path d="M12 15V3"></path>
+            </svg>
+            <span class="toolbar-label">导出</span>
+          </button>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -461,12 +78,19 @@
     <aside>
       <div class="side-head">
         <div class="person">
-          <label for="author">你的姓名</label>
-          <input id="author" placeholder="输入姓名后开始批注" />
+          <label>你的姓名</label>
+          <div class="identity-display" id="authorDisplay"></div>
+          <input id="author" type="hidden" />
         </div>
-        <div class="counts">
-          <span id="openCount">未解决 0</span>
-          <span id="resolvedCount">已解决 0</span>
+        <div class="counts" aria-label="查看筛选">
+          <label class="filter-toggle comment-filter">
+            <input id="showComments" type="checkbox" checked />
+            <span id="openCount">评论 0</span>
+          </label>
+          <label class="filter-toggle requirement-filter">
+            <input id="showRequirements" type="checkbox" checked />
+            <span id="resolvedCount">需求 0</span>
+          </label>
         </div>
       </div>
       <div id="list" class="list"></div>
@@ -493,728 +117,45 @@
 
   <dialog id="requirementDialog">
     <form method="dialog" class="modal" id="requirementForm">
-      <h2>需求描述</h2>
+      <h2>需求说明</h2>
       <div class="field">
         <label>选中区域</label>
         <div class="element" id="selectedRequirementElement"></div>
       </div>
       <div class="field">
-        <label for="requirementText">需求内容</label>
-        <textarea id="requirementText" placeholder="描述这个区域的功能目标、交互规则、状态和验收点"></textarea>
-      </div>
-      <div class="ai-row">
-        <button type="button" id="generateRequirement">AI 生成</button>
-        <span class="meta">AI 会读取当前选区的 HTML 和可见文本生成初稿。</span>
+        <label for="requirementText">需求说明</label>
+        <div class="requirement-input-wrap">
+          <textarea id="requirementText" placeholder="描述这个区域的功能目标、交互规则、状态和验收点"></textarea>
+          <div class="ai-inline">
+            <span class="meta">读取当前选区补足初稿</span>
+            <button type="button" id="generateRequirement">AI补足</button>
+          </div>
+        </div>
       </div>
       <div class="modal-actions">
         <button type="button" id="cancelRequirement">取消</button>
-        <button type="submit" class="primary">保存需求</button>
+        <button type="submit" class="primary">保存需求说明</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="identityDialog">
+    <form method="dialog" class="modal" id="identityForm">
+      <h2>输入身份信息</h2>
+      <div class="field">
+        <input id="identityName" placeholder="用于评论、需求说明协作和权限识别" autocomplete="name" />
+        <div class="meta">身份会保存在当前浏览器中，下次打开评审链接会自动使用。</div>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="primary">进入评审</button>
       </div>
     </form>
   </dialog>
 
   <div id="toast" class="toast"></div>
 
-  <script>
-    const docId = decodeURIComponent(location.pathname.split("/").pop());
-    const frame = document.getElementById("demoFrame");
-    const overlay = document.getElementById("overlay");
-    const hoverBox = document.getElementById("hoverBox");
-    const list = document.getElementById("list");
-    const modeBtn = document.getElementById("modeBtn");
-    const requirementModeBtn = document.getElementById("requirementModeBtn");
-    const authorInput = document.getElementById("author");
-    const dialog = document.getElementById("commentDialog");
-    const commentForm = document.getElementById("commentForm");
-    const commentText = document.getElementById("commentText");
-    const selectedElement = document.getElementById("selectedElement");
-    const requirementDialog = document.getElementById("requirementDialog");
-    const requirementForm = document.getElementById("requirementForm");
-    const requirementText = document.getElementById("requirementText");
-    const selectedRequirementElement = document.getElementById("selectedRequirementElement");
-    const toastEl = document.getElementById("toast");
-    let annotationMode = false;
-    let requirementMode = false;
-    let selectedTarget = null;
-    let selectedRequirementTarget = null;
-    let editingRequirementId = "";
-    let annotations = [];
-    let requirements = [];
-    let canEditRequirements = true;
-    let activeId = "";
-    let renderTimer = 0;
-
-    frame.src = `/docs/${encodeURIComponent(docId)}/content`;
-    document.getElementById("exportLink").href = `/api/docs/${encodeURIComponent(docId)}/export`;
-    document.getElementById("docStatus").textContent = docId;
-    authorInput.value = localStorage.getItem("review-author") || "";
-
-    function toast(message) {
-      toastEl.textContent = message;
-      toastEl.classList.add("show");
-      setTimeout(() => toastEl.classList.remove("show"), 1800);
-    }
-
-    async function api(path, options) {
-      const res = await fetch(path, options);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "请求失败");
-      return data;
-    }
-
-    function escapeHtml(value) {
-      return String(value || "").replace(/[&<>"']/g, ch => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[ch]));
-    }
-
-    function author() {
-      return authorInput.value.trim() || "匿名";
-    }
-
-    function normalizeText(value) {
-      return String(value || "").replace(/\s+/g, " ").trim();
-    }
-
-    function isPageTarget(el) {
-      const doc = frame.contentDocument;
-      return !el || !doc || el === doc.body || el === doc.documentElement;
-    }
-
-    function elementLabel(el) {
-      if (isPageTarget(el)) return "页面整体";
-      if (!el) return "";
-      const text = normalizeText(el.innerText || el.value || el.getAttribute("aria-label") || el.getAttribute("title") || "");
-      const tag = el.tagName.toLowerCase();
-      const classes = String(el.className || "").split(/\s+/).filter(Boolean).slice(0, 2).map(c => "." + c).join("");
-      return `${tag}${classes}${text ? " · " + text.slice(0, 60) : ""}`;
-    }
-
-    function selectorFor(el) {
-      if (isPageTarget(el)) return "body";
-      const doc = frame.contentDocument;
-      if (el.id) return `#${CSS.escape(el.id)}`;
-      const annotId = el.getAttribute("data-annot-id") || el.getAttribute("data-review-id");
-      if (annotId) return `[data-annot-id="${CSS.escape(annotId)}"],[data-review-id="${CSS.escape(annotId)}"]`;
-      const parts = [];
-      let node = el;
-      while (node && node.nodeType === 1 && node !== doc.body) {
-        const tag = node.tagName.toLowerCase();
-        const parent = node.parentElement;
-        if (!parent) break;
-        const siblings = Array.from(parent.children).filter(child => child.tagName === node.tagName);
-        const index = siblings.indexOf(node) + 1;
-        parts.unshift(`${tag}:nth-of-type(${index})`);
-        node = parent;
-      }
-      return `body > ${parts.join(" > ")}`;
-    }
-
-    function elementSnapshot(el) {
-      const target = isPageTarget(el) ? frame.contentDocument.body : el;
-      return {
-        elementHtml: target ? String(target.outerHTML || "").slice(0, 20000) : "",
-        elementText: target ? normalizeText(target.innerText || target.textContent || "").slice(0, 8000) : "",
-        pageTitle: frame.contentDocument.title || docId,
-      };
-    }
-
-    function showHover(el) {
-      if ((!annotationMode && !requirementMode) || !el) {
-        hoverBox.style.display = "none";
-        return;
-      }
-      const rect = isPageTarget(el)
-        ? { left: 0, top: 0, width: frame.contentWindow.innerWidth, height: frame.contentWindow.innerHeight }
-        : el.getBoundingClientRect();
-      hoverBox.style.display = "block";
-      hoverBox.style.left = `${rect.left}px`;
-      hoverBox.style.top = `${rect.top}px`;
-      hoverBox.style.width = `${Math.max(rect.width, 1)}px`;
-      hoverBox.style.height = `${Math.max(rect.height, 1)}px`;
-    }
-
-    function viewportFor(el, event) {
-      const win = frame.contentWindow;
-      const rect = isPageTarget(el)
-        ? { left: 0, top: 0, width: win.innerWidth, height: win.innerHeight }
-        : el.getBoundingClientRect();
-      const x = event ? event.clientX : rect.left + rect.width / 2;
-      const y = event ? event.clientY : rect.top + rect.height / 2;
-      return {
-        x,
-        y,
-        scrollX: win.scrollX,
-        scrollY: win.scrollY,
-        docX: x + win.scrollX,
-        docY: y + win.scrollY,
-        width: rect.width,
-        height: rect.height,
-      };
-    }
-
-    function openComment(el, event) {
-      const target = isPageTarget(el) ? frame.contentDocument.body : el;
-      selectedTarget = {
-        selector: selectorFor(target),
-        elementLabel: elementLabel(target),
-        viewport: viewportFor(target, event),
-      };
-      selectedElement.textContent = selectedTarget.elementLabel || selectedTarget.selector;
-      commentText.value = "";
-      dialog.showModal();
-      setTimeout(() => commentText.focus(), 40);
-    }
-
-    function openRequirement(el, event, existing) {
-      if (!canEditRequirements) {
-        toast("当前姓名只能查看需求文档");
-        return;
-      }
-      const target = existing ? findElement(existing.selector) || frame.contentDocument.body : (isPageTarget(el) ? frame.contentDocument.body : el);
-      selectedRequirementTarget = existing
-        ? {
-            selector: existing.selector,
-            elementLabel: existing.elementLabel,
-            viewport: existing.viewport,
-            ...elementSnapshot(target),
-          }
-        : {
-            selector: selectorFor(target),
-            elementLabel: elementLabel(target),
-            viewport: viewportFor(target, event),
-            ...elementSnapshot(target),
-          };
-      editingRequirementId = existing ? existing.id : "";
-      selectedRequirementElement.textContent = selectedRequirementTarget.elementLabel || selectedRequirementTarget.selector;
-      requirementText.value = existing ? existing.requirement : "";
-      requirementDialog.showModal();
-      setTimeout(() => requirementText.focus(), 40);
-    }
-
-    function installFrameHandlers() {
-      const doc = frame.contentDocument;
-      const scheduleRenderPins = () => {
-        clearTimeout(renderTimer);
-        renderTimer = setTimeout(renderPins, 80);
-      };
-      doc.addEventListener("mousemove", (event) => showHover(event.target), true);
-      doc.addEventListener("click", (event) => {
-        if (!annotationMode && !requirementMode) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (annotationMode) openComment(event.target, event);
-        if (requirementMode) openRequirement(event.target, event);
-      }, true);
-      doc.addEventListener("scroll", scheduleRenderPins, true);
-      frame.contentWindow.addEventListener("resize", scheduleRenderPins);
-      new MutationObserver(scheduleRenderPins).observe(doc.body, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      });
-      renderPins();
-    }
-
-    function findElement(selector) {
-      try {
-        if (String(selector || "").trim() === "body >") {
-          return frame.contentDocument.body;
-        }
-        return frame.contentDocument.querySelector(selector);
-      } catch {
-        return null;
-      }
-    }
-
-    function labelStillMatches(item, el) {
-      if (!el) return false;
-      if (item.selector === "body") return true;
-      const saved = normalizeText(item.elementLabel);
-      const current = normalizeText(elementLabel(el));
-      if (!saved || !current) return true;
-      if (saved === current) return true;
-      const savedText = saved.split("·").slice(1).join("·").trim();
-      const currentText = current.split("·").slice(1).join("·").trim();
-      if (!savedText || !currentText) return true;
-      return currentText.includes(savedText.slice(0, 24)) || savedText.includes(currentText.slice(0, 24));
-    }
-
-    function pointFromStoredViewport(item) {
-      const viewport = item.viewport || {};
-      const win = frame.contentWindow;
-      if (Number.isFinite(viewport.docX) && Number.isFinite(viewport.docY)) {
-        return {
-          x: viewport.docX - win.scrollX,
-          y: viewport.docY - win.scrollY,
-          scrollX: win.scrollX,
-          scrollY: win.scrollY,
-          docX: viewport.docX,
-          docY: viewport.docY,
-          width: viewport.width || 0,
-          height: viewport.height || 0,
-        };
-      }
-      return null;
-    }
-
-    function isPointInViewport(point) {
-      const win = frame.contentWindow;
-      return point.x >= 0 && point.y >= 0 && point.x <= win.innerWidth && point.y <= win.innerHeight;
-    }
-
-    function isElementVisible(el) {
-      if (isPageTarget(el)) return true;
-      const rect = el.getBoundingClientRect();
-      const win = frame.contentWindow;
-      return rect.width > 0 && rect.height > 0 && rect.bottom >= 0 && rect.right >= 0 && rect.left <= win.innerWidth && rect.top <= win.innerHeight;
-    }
-
-    function resolveAnnotationTarget(item) {
-      const el = findElement(item.selector);
-      if (el && labelStillMatches(item, el)) {
-        const point = pointFromStoredViewport(item) || viewportFor(el);
-        return { el, point, visible: isElementVisible(el) && isPointInViewport(point) };
-      }
-      return { el: null, point: null, visible: false };
-    }
-
-    function flashTarget(target) {
-      overlay.querySelectorAll(".focus-box").forEach(box => box.remove());
-      if (!target || !target.point) return;
-      const point = target.point;
-      let rect = null;
-      if (target.el) {
-        rect = target.el.getBoundingClientRect();
-      } else {
-        const size = 72;
-        rect = { left: point.x - size / 2, top: point.y - size / 2, width: size, height: size };
-      }
-      const box = document.createElement("div");
-      box.className = "focus-box";
-      box.style.left = `${Math.max(4, rect.left)}px`;
-      box.style.top = `${Math.max(4, rect.top)}px`;
-      box.style.width = `${Math.max(26, rect.width)}px`;
-      box.style.height = `${Math.max(26, rect.height)}px`;
-      overlay.appendChild(box);
-      setTimeout(() => box.remove(), 2500);
-    }
-
-    function focusAnnotation(item, index) {
-      let target = resolveAnnotationTarget(item);
-      if (target.el) {
-        const point = pointFromStoredViewport(item);
-        if (point) {
-          frame.contentWindow.scrollTo({
-            left: Math.max(0, point.docX - frame.contentWindow.innerWidth / 2),
-            top: Math.max(0, point.docY - frame.contentWindow.innerHeight / 2),
-            behavior: "smooth",
-          });
-        } else {
-          target.el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-        }
-      } else {
-        activeId = item.id;
-        renderList();
-        hidePinPopover();
-        toast("原批注元素当前未显示，批注点已隐藏");
-        return;
-      }
-      setTimeout(() => {
-        target = resolveAnnotationTarget(item);
-        activeId = item.id;
-        renderList();
-        renderPins();
-        if (target.visible && target.point) {
-          renderPinPopover(item, index, target.point);
-          flashTarget(target);
-        }
-      }, 380);
-    }
-
-    function hidePinPopover() {
-      overlay.querySelectorAll(".pin-popover").forEach(popover => popover.remove());
-    }
-
-    function renderPinPopover(item, index, point) {
-      hidePinPopover();
-      const popover = document.createElement("div");
-      popover.className = "pin-popover";
-      if (requirementMode) {
-        popover.innerHTML = `
-          <div class="pin-popover-head">
-            <div style="min-width:0;">
-              <div class="pin-popover-title">
-                <span class="index">${index + 1}</span>
-                <span>需求描述</span>
-              </div>
-              <div class="element" style="margin-top:6px;">${escapeHtml(item.elementLabel || item.selector)}</div>
-            </div>
-            <button class="pin-popover-close" type="button" aria-label="关闭">×</button>
-          </div>
-          <div class="note">${escapeHtml(item.requirement)}</div>
-          <div class="meta">${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
-        `;
-        overlay.appendChild(popover);
-        positionPopover(popover, point);
-        popover.querySelector(".pin-popover-close").addEventListener("click", (event) => {
-          event.stopPropagation();
-          activeId = "";
-          hidePinPopover();
-          renderList();
-        });
-        return;
-      }
-      const replies = item.replies || [];
-      popover.innerHTML = `
-        <div class="pin-popover-head">
-          <div style="min-width:0;">
-            <div class="pin-popover-title">
-              <span class="index">${index + 1}</span>
-              <span>${item.status === "resolved" ? "已解决批注" : "未解决批注"}</span>
-            </div>
-            <div class="element" style="margin-top:6px;">${escapeHtml(item.elementLabel || item.selector)}</div>
-          </div>
-          <button class="pin-popover-close" type="button" aria-label="关闭">×</button>
-        </div>
-        <div class="note">${escapeHtml(item.note)}</div>
-        <div class="meta">${escapeHtml(item.author)} · ${new Date(item.createdAt).toLocaleString()}</div>
-        <div class="pin-popover-replies">
-          <div class="meta">回复记录 ${replies.length}</div>
-          ${replies.length ? replies.map(reply => `
-            <div class="reply">
-              <div class="note">${escapeHtml(reply.note)}</div>
-              <div class="meta">${escapeHtml(reply.author)} · ${new Date(reply.createdAt).toLocaleString()}</div>
-            </div>
-          `).join("") : `<div class="meta">暂无回复。</div>`}
-        </div>
-      `;
-      overlay.appendChild(popover);
-
-      positionPopover(popover, point);
-      popover.querySelector(".pin-popover-close").addEventListener("click", (event) => {
-        event.stopPropagation();
-        activeId = "";
-        hidePinPopover();
-        renderList();
-      });
-    }
-
-    function positionPopover(popover, point) {
-      const margin = 12;
-      const gap = 14;
-      const overlayRect = overlay.getBoundingClientRect();
-      const popoverRect = popover.getBoundingClientRect();
-      let left = point.x + gap;
-      let top = point.y + gap;
-      if (left + popoverRect.width > overlayRect.width - margin) {
-        left = point.x - popoverRect.width - gap;
-      }
-      if (top + popoverRect.height > overlayRect.height - margin) {
-        top = overlayRect.height - popoverRect.height - margin;
-      }
-      popover.style.left = `${Math.max(margin, left)}px`;
-      popover.style.top = `${Math.max(margin, top)}px`;
-    }
-
-    function renderPins() {
-      overlay.querySelectorAll(".pin").forEach(pin => pin.remove());
-      hidePinPopover();
-      const rows = requirementMode ? requirements : annotations;
-      rows.forEach((item, index) => {
-        const target = resolveAnnotationTarget(item);
-        const point = target.point;
-        if (!target.visible || !point) return;
-        const pin = document.createElement("button");
-        pin.className = `pin ${item.status === "resolved" ? "resolved" : ""}`;
-        pin.textContent = index + 1;
-        pin.title = item.note || item.requirement || "";
-        pin.style.left = `${point.x}px`;
-        pin.style.top = `${point.y}px`;
-        pin.addEventListener("click", (event) => {
-          event.stopPropagation();
-          activeId = item.id;
-          renderList();
-          renderPinPopover(item, index, point);
-          flashTarget(target);
-        });
-        overlay.appendChild(pin);
-        if (item.id === activeId) {
-          renderPinPopover(item, index, point);
-        }
-      });
-    }
-
-    function renderRequirementList() {
-      document.getElementById("openCount").textContent = `需求 ${requirements.length}`;
-      document.getElementById("resolvedCount").textContent = canEditRequirements ? "可编辑" : "只读";
-      if (!requirements.length) {
-        list.innerHTML = `<div class="empty">${canEditRequirements ? "还没有需求描述。进入需求文档模式后，在左侧页面中点击区域即可添加。" : "还没有需求描述。"}</div>`;
-        renderPins();
-        return;
-      }
-      list.innerHTML = requirements.map((item, index) => `
-        <article class="card ${item.id === activeId ? "active" : ""}" data-requirement-card="${item.id}">
-          <div class="card-top">
-            <div class="card-title-row">
-              <div class="index">${index + 1}</div>
-              <div style="min-width:0;">
-                <div class="element">${escapeHtml(item.elementLabel || item.selector)}</div>
-                <div class="meta">${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
-              </div>
-            </div>
-            ${canEditRequirements ? `<div class="card-tools">
-              <button class="icon-button" type="button" title="编辑需求" aria-label="编辑需求" data-edit-requirement="${item.id}">✎</button>
-              <button class="icon-button" type="button" title="删除需求" aria-label="删除需求" data-delete-requirement="${item.id}">×</button>
-            </div>` : ""}
-          </div>
-          <div class="note">${escapeHtml(item.requirement)}</div>
-        </article>
-      `).join("");
-      list.querySelectorAll("[data-edit-requirement]").forEach(button => {
-        button.addEventListener("click", () => {
-          const item = requirements.find(row => row.id === button.dataset.editRequirement);
-          if (item) openRequirement(null, null, item);
-        });
-      });
-      list.querySelectorAll("[data-delete-requirement]").forEach(button => {
-        button.addEventListener("click", async () => {
-          const item = requirements.find(row => row.id === button.dataset.deleteRequirement);
-          if (!item) return;
-          if (!confirm("确定删除这条需求描述吗？")) return;
-          await api(`/api/requirements/${item.id}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ author: author() }),
-          });
-        });
-      });
-      list.querySelectorAll("[data-requirement-card]").forEach(card => {
-        card.addEventListener("click", (event) => {
-          if (event.target.closest("button, input, textarea, form")) return;
-          const item = requirements.find(row => row.id === card.dataset.requirementCard);
-          const index = requirements.findIndex(row => row.id === card.dataset.requirementCard);
-          if (item) focusAnnotation(item, index);
-        });
-      });
-      renderPins();
-    }
-
-    function renderList() {
-      if (requirementMode) {
-        renderRequirementList();
-        return;
-      }
-      const open = annotations.filter(item => item.status !== "resolved").length;
-      const resolved = annotations.length - open;
-      document.getElementById("openCount").textContent = `未解决 ${open}`;
-      document.getElementById("resolvedCount").textContent = `已解决 ${resolved}`;
-      if (!annotations.length) {
-        list.innerHTML = `<div class="empty">还没有批注。开启批注后，在左侧 demo 中点击任意控件或区域即可添加。</div>`;
-        renderPins();
-        return;
-      }
-      list.innerHTML = annotations.map((item, index) => `
-        <article class="card ${item.status === "resolved" ? "resolved" : ""} ${item.id === activeId ? "active" : ""}" data-card="${item.id}">
-          <div class="card-top">
-            <div class="card-title-row">
-              <div class="index">${index + 1}</div>
-              <div style="min-width:0;">
-                <div class="element">${escapeHtml(item.elementLabel || item.selector)}</div>
-                <div class="meta">${escapeHtml(item.author)} · ${new Date(item.createdAt).toLocaleString()}</div>
-              </div>
-            </div>
-            <div class="card-tools">
-              <button class="icon-button" type="button" title="删除批注" aria-label="删除批注" data-delete="${item.id}">×</button>
-            </div>
-          </div>
-          <div class="note">${escapeHtml(item.note)}</div>
-          ${(item.replies || []).map(reply => `
-            <div class="reply">
-              <div class="note">${escapeHtml(reply.note)}</div>
-              <div class="meta">${escapeHtml(reply.author)} · ${new Date(reply.createdAt).toLocaleString()}</div>
-            </div>
-          `).join("")}
-          <div class="card-actions">
-            <button class="status-button" type="button" data-status="${item.id}">${item.status === "resolved" ? "重开批注" : "标记解决"}</button>
-          </div>
-          <form class="reply-form" data-reply="${item.id}">
-            <input name="note" placeholder="回复这条批注" />
-            <button type="submit">回复</button>
-          </form>
-        </article>
-      `).join("");
-      list.querySelectorAll("[data-status]").forEach(button => {
-        button.addEventListener("click", async () => {
-          const item = annotations.find(row => row.id === button.dataset.status);
-          await api(`/api/annotations/${item.id}/status`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: item.status === "resolved" ? "open" : "resolved" }),
-          });
-        });
-      });
-      list.querySelectorAll("[data-delete]").forEach(button => {
-        button.addEventListener("click", async () => {
-          const item = annotations.find(row => row.id === button.dataset.delete);
-          if (!item) return;
-          if (!confirm("确定删除这条批注吗？")) return;
-          await api(`/api/annotations/${item.id}`, { method: "DELETE" });
-        });
-      });
-      list.querySelectorAll("[data-card]").forEach(card => {
-        card.addEventListener("click", (event) => {
-          if (event.target.closest("button, input, textarea, form")) return;
-          const item = annotations.find(row => row.id === card.dataset.card);
-          const index = annotations.findIndex(row => row.id === card.dataset.card);
-          if (item) focusAnnotation(item, index);
-        });
-      });
-      list.querySelectorAll("[data-reply]").forEach(form => {
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const input = form.elements.note;
-          try {
-            await api(`/api/annotations/${form.dataset.reply}/replies`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ author: author(), note: input.value }),
-            });
-            input.value = "";
-          } catch (error) {
-            toast(error.message);
-          }
-        });
-      });
-      renderPins();
-    }
-
-    async function loadAnnotations() {
-      const data = await api(`/api/docs/${encodeURIComponent(docId)}/annotations`);
-      annotations = data.annotations;
-      renderList();
-    }
-
-    async function loadRequirements() {
-      const data = await api(`/api/docs/${encodeURIComponent(docId)}/requirements?author=${encodeURIComponent(author())}`);
-      requirements = data.requirements;
-      canEditRequirements = data.canEdit;
-      if (requirementMode) renderList();
-    }
-
-    modeBtn.addEventListener("click", () => {
-      annotationMode = !annotationMode;
-      if (annotationMode) requirementMode = false;
-      modeBtn.textContent = annotationMode ? "退出批注" : "开启批注";
-      modeBtn.classList.toggle("active", annotationMode);
-      requirementModeBtn.classList.toggle("active", requirementMode);
-      hoverBox.style.display = "none";
-      activeId = "";
-      renderList();
-      toast(annotationMode ? "批注模式已开启：点击页面元素添加批注" : "已回到正常预览模式");
-    });
-
-    requirementModeBtn.addEventListener("click", async () => {
-      requirementMode = !requirementMode;
-      if (requirementMode) annotationMode = false;
-      requirementModeBtn.classList.toggle("active", requirementMode);
-      modeBtn.textContent = annotationMode ? "退出批注" : "开启批注";
-      modeBtn.classList.toggle("active", annotationMode);
-      hoverBox.style.display = "none";
-      activeId = "";
-      await loadRequirements();
-      renderList();
-      toast(requirementMode ? (canEditRequirements ? "需求文档模式：点击页面区域添加需求" : "需求文档模式：当前姓名只读") : "已回到批注视图");
-    });
-
-    authorInput.addEventListener("input", () => {
-      localStorage.setItem("review-author", authorInput.value.trim());
-      loadRequirements().catch(() => {});
-    });
-
-    document.getElementById("refreshBtn").addEventListener("click", () => {
-      loadAnnotations();
-      loadRequirements();
-    });
-    document.getElementById("cancelComment").addEventListener("click", () => dialog.close());
-    document.getElementById("cancelRequirement").addEventListener("click", () => requirementDialog.close());
-    document.getElementById("generateRequirement").addEventListener("click", async () => {
-      try {
-        if (!selectedRequirementTarget) throw new Error("请先选择页面区域");
-        const button = document.getElementById("generateRequirement");
-        button.disabled = true;
-        button.textContent = "生成中...";
-        const data = await api("/api/requirements/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...selectedRequirementTarget,
-            author: author(),
-          }),
-        });
-        requirementText.value = data.requirement;
-      } catch (error) {
-        toast(error.message);
-      } finally {
-        const button = document.getElementById("generateRequirement");
-        button.disabled = false;
-        button.textContent = "AI 生成";
-      }
-    });
-    commentForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      try {
-        await api(`/api/docs/${encodeURIComponent(docId)}/annotations`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...selectedTarget,
-            note: commentText.value,
-            author: author(),
-          }),
-        });
-        dialog.close();
-        toast("批注已提交");
-      } catch (error) {
-        toast(error.message);
-      }
-    });
-
-    requirementForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      try {
-        if (!selectedRequirementTarget) throw new Error("请先选择页面区域");
-        const path = editingRequirementId
-          ? `/api/requirements/${editingRequirementId}`
-          : `/api/docs/${encodeURIComponent(docId)}/requirements`;
-        await api(path, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...selectedRequirementTarget,
-            requirement: requirementText.value,
-            author: author(),
-          }),
-        });
-        requirementDialog.close();
-        toast("需求已保存");
-      } catch (error) {
-        toast(error.message);
-      }
-    });
-
-    frame.addEventListener("load", installFrameHandlers);
-    loadAnnotations();
-    loadRequirements();
-    const events = new EventSource(`/events/docs/${encodeURIComponent(docId)}`);
-    events.addEventListener("annotations", (event) => {
-      annotations = JSON.parse(event.data);
-      renderList();
-    });
-    events.addEventListener("requirements", (event) => {
-      requirements = JSON.parse(event.data);
-      if (requirementMode) renderList();
-    });
-  </script>
+  <script src="/assets/review-core.js" defer></script>
+  <script src="/assets/review-render.js" defer></script>
+  <script src="/assets/review-actions.js" defer></script>
 </body>
 </html>

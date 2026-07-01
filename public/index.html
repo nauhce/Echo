@@ -4,421 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HTML 需求评审助手</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f7f7f5;
-      --panel: rgba(255, 255, 255, 0.74);
-      --panel-strong: #ffffff;
-      --text: #191a1c;
-      --muted: #6f737b;
-      --soft: #9aa0aa;
-      --line: #e6e3dc;
-      --line-strong: #d8d4cb;
-      --accent: #1f2937;
-      --accent-dark: #000000;
-      --success: #12b76a;
-      --shadow: 0 20px 60px rgba(32, 31, 28, 0.08);
-      --focus: 0 0 0 4px rgba(31, 41, 55, 0.08);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
-      background:
-        radial-gradient(circle at 12% -10%, rgba(255, 255, 255, 0.92), transparent 34%),
-        linear-gradient(180deg, #fbfaf8 0%, var(--bg) 38%, #f3f3f1 100%);
-      color: var(--text);
-    }
-    header {
-      height: 68px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 clamp(20px, 4vw, 48px);
-      border-bottom: 1px solid var(--line);
-      background: rgba(250, 249, 246, 0.78);
-      backdrop-filter: blur(20px);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    h1 { margin: 0; font-size: 15px; letter-spacing: 0; font-weight: 760; }
-    main {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 48px 28px 80px;
-      display: grid;
-      gap: 34px;
-    }
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-      gap: 56px;
-      align-items: end;
-      padding: 10px 0 22px;
-      border-bottom: 1px solid var(--line);
-    }
-    .hero-copy {
-      min-width: 0;
-    }
-    .hero-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 20px;
-    }
-    .title {
-      font-size: clamp(31px, 4.1vw, 44px);
-      line-height: 1.08;
-      margin: 0 0 18px;
-      max-width: 760px;
-      font-weight: 820;
-    }
-    .desc {
-      color: var(--muted);
-      margin: 0;
-      line-height: 1.85;
-      max-width: 660px;
-      font-size: 15px;
-    }
-    .hero-editor {
-      display: none;
-      max-width: 680px;
-      margin-top: 20px;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.62);
-      gap: 12px;
-    }
-    .hero-editor.open {
-      display: grid;
-    }
-    .hero-editor textarea {
-      width: 100%;
-      min-height: 92px;
-      border: 1px solid var(--line-strong);
-      border-radius: 8px;
-      padding: 12px 13px;
-      font: inherit;
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.82);
-      resize: vertical;
-      outline: none;
-      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-    }
-    .hero-editor textarea:focus {
-      border-color: #9ca3af;
-      box-shadow: var(--focus);
-      background: #fff;
-    }
-    .editor-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
-    .panel {
-      padding: 0;
-    }
-    .panel > h2 {
-      margin: 0 0 16px;
-      font-size: 18px;
-      font-weight: 780;
-    }
-    .server {
-      display: grid;
-      gap: 10px;
-      font-size: 13px;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.54);
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #067647;
-      background: rgba(236, 253, 243, 0.82);
-      border: 1px solid #bbf7d0;
-      border-radius: 999px;
-      padding: 7px 11px;
-      width: fit-content;
-      font-size: 13px;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-    }
-    label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
-      font-weight: 650;
-    }
-    input[type="text"], input[type="url"], input[type="file"], select {
-      width: 100%;
-      border: 1px solid var(--line-strong);
-      border-radius: 8px;
-      padding: 12px 13px;
-      font: inherit;
-      background: rgba(255, 255, 255, 0.82);
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-    }
-    input[type="file"] {
-      padding: 8px;
-    }
-    input::placeholder {
-      color: var(--soft);
-    }
-    input[type="file"]::file-selector-button {
-      margin-right: 10px;
-      border: 0;
-      border-radius: 7px;
-      background: #f0efeb;
-      color: var(--text);
-      padding: 8px 10px;
-      font: inherit;
-      cursor: pointer;
-    }
-    input:focus, select:focus {
-      border-color: #9ca3af;
-      box-shadow: var(--focus);
-      background: #fff;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 14px;
-      align-items: stretch;
-    }
-    button, .button {
-      border: 0;
-      border-radius: 8px;
-      background: var(--accent);
-      color: white;
-      font: inherit;
-      font-weight: 720;
-      padding: 11px 15px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 42px;
-      white-space: nowrap;
-      transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
-    }
-    button:hover, .button:hover {
-      background: var(--accent-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
-    }
-    button:active, .button:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
-    .secondary {
-      background: rgba(255, 255, 255, 0.7);
-      color: var(--text);
-      border: 1px solid var(--line);
-    }
-    .secondary:hover {
-      background: #fff;
-      border-color: var(--line-strong);
-      box-shadow: 0 8px 22px rgba(32, 31, 28, 0.08);
-    }
-    .import-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-    .import-card {
-      min-height: 184px;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.86) inset;
-      display: grid;
-      gap: 14px;
-      align-content: space-between;
-      transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
-    }
-    .import-card:hover {
-      border-color: var(--line-strong);
-      background: rgba(255, 255, 255, 0.88);
-      box-shadow: var(--shadow);
-      transform: translateY(-1px);
-    }
-    .settings-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 14px;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-    }
-    .settings-grid .wide {
-      grid-column: 1 / -1;
-    }
-    .docs {
-      display: grid;
-      gap: 10px;
-    }
-    .doc {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 14px;
-      align-items: center;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.72);
-      transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
-    }
-    .doc:hover {
-      border-color: var(--line-strong);
-      background: #fff;
-      box-shadow: 0 14px 38px rgba(32, 31, 28, 0.07);
-    }
-    .doc h3 {
-      margin: 0 0 6px;
-      font-size: 16px;
-    }
-    .meta {
-      color: var(--muted);
-      font-size: 13px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      position: relative;
-    }
-    .share-action {
-      position: relative;
-      display: inline-flex;
-    }
-    .share-button {
-      gap: 8px;
-    }
-    .chevron {
-      font-size: 12px;
-      line-height: 1;
-      opacity: 0.72;
-    }
-    .share-menu {
-      position: absolute;
-      right: 0;
-      top: calc(100% + 8px);
-      z-index: 20;
-      min-width: 260px;
-      padding: 6px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 18px 48px rgba(32, 31, 28, 0.14);
-      display: none;
-    }
-    .share-action.open .share-menu {
-      display: grid;
-      gap: 4px;
-    }
-    .share-option {
-      width: 100%;
-      min-height: 34px;
-      justify-content: flex-start;
-      background: transparent;
-      color: var(--text);
-      border: 0;
-      padding: 8px 10px;
-      font-size: 13px;
-      font-weight: 650;
-      box-shadow: none;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .share-option:hover {
-      background: #f5f4f1;
-      color: var(--text);
-      box-shadow: none;
-      transform: none;
-    }
-    .hint {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-      margin: 10px 0 0;
-    }
-    .file-name-preview {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 8px;
-      line-height: 1.55;
-    }
-    .subtle-button {
-      min-height: 34px;
-      padding: 7px 11px;
-      background: rgba(255, 255, 255, 0.66);
-      color: var(--text);
-      border: 1px solid var(--line);
-      font-size: 13px;
-      font-weight: 680;
-    }
-    .subtle-button:hover {
-      background: #fff;
-      border-color: var(--line-strong);
-      box-shadow: 0 8px 22px rgba(32, 31, 28, 0.08);
-    }
-    .toast {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      background: rgba(25, 26, 28, 0.94);
-      color: #fff;
-      padding: 12px 14px;
-      border-radius: 8px;
-      box-shadow: 0 18px 40px rgba(25, 26, 28, 0.18);
-      opacity: 0;
-      transform: translateY(8px);
-      transition: 0.18s ease;
-      pointer-events: none;
-      z-index: 50;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    @media (max-width: 820px) {
-      header { padding: 0 18px; }
-      main { padding: 28px 18px 56px; gap: 26px; }
-      .hero, .import-grid, .settings-grid, .doc { grid-template-columns: 1fr; }
-      .settings-grid .wide { grid-column: auto; }
-      .editor-actions { justify-content: stretch; }
-      .editor-actions > * { flex: 1; }
-      .actions { justify-content: stretch; }
-      .actions > * { flex: 1; }
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/index.css" />
+
 </head>
 <body>
   <header>
-    <h1>HTML 需求评审助手</h1>
-    <span class="pill"><span class="dot"></span>本地服务运行中</span>
+    <div class="brand-title">
+      <h1 id="appTitle">HTML 需求评审助手</h1>
+      <button class="icon-button brand-edit-button" id="editAppTitleBtn" type="button" aria-label="编辑标题" title="编辑标题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="header-actions">
+      <span class="pill"><span class="dot"></span>本地服务运行中</span>
+      <button class="icon-button" id="settingsButton" type="button" aria-label="AI 与权限设置" title="AI 与权限设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"></path>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"></path>
+        </svg>
+      </button>
+    </div>
   </header>
 
   <main>
@@ -443,10 +51,6 @@
             <button type="submit">保存文案</button>
           </div>
         </form>
-      </div>
-      <div class="panel server">
-        <strong>可分享地址</strong>
-        <div id="serverLinks"></div>
       </div>
     </section>
 
@@ -473,13 +77,35 @@
     </section>
 
     <section class="panel">
-      <h2>AI 与权限设置</h2>
-      <form id="settingsForm" class="settings-grid">
-        <div class="wide">
-          <label for="allowedEditors">需求文档编辑白名单</label>
-          <input id="allowedEditors" type="text" placeholder="张三、李四、产品经理" />
-          <div class="file-name-preview">只有这些姓名可以新增、编辑需求文档和使用 AI 生成。</div>
+      <div class="section-heading">
+        <h2>评审文档</h2>
+        <div class="doc-toolbar">
+          <label class="doc-search" for="docSearchInput">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <input id="docSearchInput" type="search" placeholder="搜索文档名称" autocomplete="off" />
+          </label>
+          <button class="secondary compact-button" id="createFolderBtn" type="button">新建文件夹</button>
         </div>
+      </div>
+      <div id="docs" class="docs"></div>
+    </section>
+  </main>
+
+  <div class="settings-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="settings-dialog-header">
+        <h2 id="settingsTitle">AI 与权限设置</h2>
+        <button class="icon-button" id="closeSettingsButton" type="button" aria-label="关闭设置" title="关闭设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <form id="settingsForm" class="settings-grid">
         <div>
           <label for="aiBaseUrl">AI Base URL</label>
           <input id="aiBaseUrl" type="url" placeholder="https://api.openai.com/v1" />
@@ -498,261 +124,57 @@
         </div>
       </form>
     </section>
+  </div>
 
-    <section class="panel">
-      <h2>评审文档</h2>
-      <div id="docs" class="docs"></div>
+  <div class="settings-backdrop" id="collaboratorsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="collaboratorsTitle">
+      <div class="settings-dialog-header">
+        <h2 id="collaboratorsTitle">协作者</h2>
+        <button class="icon-button" id="closeCollaboratorsButton" type="button" aria-label="关闭协作者设置" title="关闭协作者设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <form id="collaboratorsForm" class="settings-grid">
+        <div class="wide">
+          <label for="collaboratorsInput">需求文档协作者</label>
+          <input id="collaboratorsInput" type="text" placeholder="张三、李四、产品经理" />
+          <div class="file-name-preview">多人用顿号、逗号或换行分隔。留空时，任何填写姓名的人都可以协作编写该文档。</div>
+        </div>
+        <div class="editor-actions wide">
+          <button type="submit">保存协作者</button>
+        </div>
+      </form>
     </section>
-  </main>
+  </div>
+
+  <div class="settings-backdrop" id="appTitleBackdrop" aria-hidden="true">
+    <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="appTitleDialogTitle">
+      <div class="settings-dialog-header">
+        <h2 id="appTitleDialogTitle">编辑标题</h2>
+        <button class="icon-button" id="closeAppTitleButton" type="button" aria-label="关闭标题编辑" title="关闭标题编辑">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <form id="appTitleForm" class="settings-grid">
+        <div class="wide">
+          <label for="appTitleInput">页面标题</label>
+          <input id="appTitleInput" type="text" />
+        </div>
+        <div class="editor-actions wide">
+          <button type="submit">保存标题</button>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <div id="toast" class="toast"></div>
 
-  <script>
-    const docsEl = document.getElementById("docs");
-    const toastEl = document.getElementById("toast");
-    const heroTitleEl = document.getElementById("heroTitle");
-    const heroDescEl = document.getElementById("heroDesc");
-    const heroEditor = document.getElementById("heroEditor");
-    const heroTitleInput = document.getElementById("heroTitleInput");
-    const heroDescInput = document.getElementById("heroDescInput");
-    const allowedEditorsInput = document.getElementById("allowedEditors");
-    const aiBaseUrlInput = document.getElementById("aiBaseUrl");
-    const aiModelInput = document.getElementById("aiModel");
-    const aiApiKeyInput = document.getElementById("aiApiKey");
-    const aiKeyStatus = document.getElementById("aiKeyStatus");
-    const defaultHeroCopy = {
-      title: heroTitleEl.textContent,
-      desc: heroDescEl.textContent,
-    };
-    const defaultFileHint = "导入html格式的文件，可以是文档、demo或者设计图。";
-    let config = null;
-    let shareOrigin = location.origin;
-    let shareOrigins = [location.origin];
-
-    function toast(message) {
-      toastEl.textContent = message;
-      toastEl.classList.add("show");
-      setTimeout(() => toastEl.classList.remove("show"), 1800);
-    }
-
-    async function api(path, options) {
-      const res = await fetch(path, options);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "请求失败");
-      return data;
-    }
-
-    function reviewUrl(doc) {
-      return `${location.origin}/review/${doc.id}`;
-    }
-
-    async function copy(text) {
-      await navigator.clipboard.writeText(text);
-      toast("链接已复制");
-    }
-
-    async function loadConfig() {
-      config = await api("/api/config");
-      const links = document.getElementById("serverLinks");
-      const origins = [location.origin].concat((config.localIps || []).map(ip => `http://${ip}:${config.port}`));
-      shareOrigins = Array.from(new Set(origins));
-      const savedOrigin = localStorage.getItem("echo-share-origin");
-      shareOrigin = shareOrigins.includes(savedOrigin) ? savedOrigin : shareOrigins[0];
-      links.innerHTML = shareOrigins.map((origin, index) => {
-        const label = index === 0 ? "本机" : `可选地址 ${index}`;
-        return `<div class="meta">${label}：${escapeHtml(origin)}</div>`;
-      }).join("");
-    }
-
-    function shareUrl(doc, origin = shareOrigin) {
-      return `${origin}/review/${doc.id}`;
-    }
-
-    function shareOptions(doc) {
-      return shareOrigins.map((origin, index) => {
-        const label = index === 0 ? `本机：${origin}` : `可选地址 ${index}：${origin}`;
-        return `<button class="share-option" type="button" data-share-origin="${escapeHtml(origin)}" data-share-doc="${escapeHtml(doc.id)}">${escapeHtml(label)}</button>`;
-      }).join("");
-    }
-
-    async function loadSettings() {
-      const { settings } = await api("/api/settings");
-      allowedEditorsInput.value = (settings.allowedEditors || []).join("、");
-      aiBaseUrlInput.value = settings.ai.baseUrl || "https://api.openai.com/v1";
-      aiModelInput.value = settings.ai.model || "gpt-4o-mini";
-      aiKeyStatus.textContent = settings.ai.hasApiKey ? "已保存 API Key；留空提交会继续沿用。" : "尚未配置 API Key。";
-    }
-
-    async function loadDocs() {
-      const { docs } = await api("/api/docs");
-      if (!docs.length) {
-        docsEl.innerHTML = `<div class="meta">还没有导入文档。</div>`;
-        return;
-      }
-      docsEl.innerHTML = docs.map(doc => `
-        <article class="doc">
-          <div>
-            <h3>${escapeHtml(doc.title)}</h3>
-            <div class="meta">ID：${escapeHtml(doc.id)} · 文件：${escapeHtml(doc.filename || "")}</div>
-            ${doc.sourceUrl ? `<div class="meta">来源：${escapeHtml(doc.sourceUrl)}</div>` : ""}
-            <div class="meta">评审链接：${escapeHtml(shareUrl(doc))}</div>
-          </div>
-          <div class="actions">
-            <a class="button" href="/review/${encodeURIComponent(doc.id)}" target="_blank">开始</a>
-            <div class="share-action">
-              <button class="secondary share-button" type="button" data-share-toggle="${escapeHtml(doc.id)}">复制分享链接 <span class="chevron">⌄</span></button>
-              <div class="share-menu">${shareOptions(doc)}</div>
-            </div>
-            <a class="button secondary" href="/api/docs/${encodeURIComponent(doc.id)}/export">导出批注</a>
-          </div>
-        </article>
-      `).join("");
-      docsEl.querySelectorAll("[data-share-toggle]").forEach(btn => {
-        btn.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const action = btn.closest(".share-action");
-          docsEl.querySelectorAll(".share-action.open").forEach(item => {
-            if (item !== action) item.classList.remove("open");
-          });
-          action.classList.toggle("open");
-        });
-      });
-      docsEl.querySelectorAll("[data-share-origin]").forEach(btn => {
-        btn.addEventListener("click", async (event) => {
-          event.stopPropagation();
-          const doc = docs.find(item => item.id === btn.dataset.shareDoc);
-          if (!doc) return;
-          shareOrigin = btn.dataset.shareOrigin;
-          localStorage.setItem("echo-share-origin", shareOrigin);
-          await copy(shareUrl(doc, shareOrigin));
-          btn.closest(".share-action").classList.remove("open");
-          loadDocs();
-        });
-      });
-    }
-
-    function escapeHtml(value) {
-      return String(value).replace(/[&<>"']/g, ch => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[ch]));
-    }
-
-    function applyHeroCopy(copy) {
-      heroTitleEl.textContent = copy.title || defaultHeroCopy.title;
-      heroDescEl.textContent = copy.desc || defaultHeroCopy.desc;
-    }
-
-    function loadHeroCopy() {
-      try {
-        const saved = JSON.parse(localStorage.getItem("echo-hero-copy") || "null");
-        if (saved && (saved.title || saved.desc)) applyHeroCopy(saved);
-      } catch {
-        applyHeroCopy(defaultHeroCopy);
-      }
-    }
-
-    function openHeroEditor() {
-      heroTitleInput.value = heroTitleEl.textContent;
-      heroDescInput.value = heroDescEl.textContent;
-      heroEditor.classList.add("open");
-      setTimeout(() => heroTitleInput.focus(), 40);
-    }
-
-    function closeHeroEditor() {
-      heroEditor.classList.remove("open");
-    }
-
-    document.getElementById("editHeroBtn").addEventListener("click", openHeroEditor);
-    document.getElementById("cancelHeroEdit").addEventListener("click", closeHeroEditor);
-    document.addEventListener("click", () => {
-      docsEl.querySelectorAll(".share-action.open").forEach(item => item.classList.remove("open"));
-    });
-    heroEditor.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const copy = {
-        title: heroTitleInput.value.trim() || defaultHeroCopy.title,
-        desc: heroDescInput.value.trim() || defaultHeroCopy.desc,
-      };
-      localStorage.setItem("echo-hero-copy", JSON.stringify(copy));
-      applyHeroCopy(copy);
-      closeHeroEditor();
-      toast("文案已保存");
-    });
-
-    document.getElementById("file").addEventListener("change", (event) => {
-      const file = event.currentTarget.files && event.currentTarget.files[0];
-      document.getElementById("fileNamePreview").textContent = file
-        ? `文档名称：${file.name.replace(/\.html?$/i, "")}`
-        : defaultFileHint;
-    });
-
-    document.getElementById("uploadForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      try {
-        const file = document.getElementById("file").files[0];
-        if (!file) throw new Error("请选择 HTML 文件");
-        const data = new FormData(form);
-        data.set("title", file.name.replace(/\.html?$/i, ""));
-        await fetch("/api/docs/upload", { method: "POST", body: data }).then(async res => {
-          const body = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(body.error || "上传失败");
-          return body;
-        });
-        toast("已上传 HTML");
-        form.reset();
-        document.getElementById("fileNamePreview").textContent = defaultFileHint;
-        loadDocs();
-      } catch (error) {
-        toast(error.message);
-      }
-    });
-
-    document.getElementById("urlForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      try {
-        const pageUrl = document.getElementById("pageUrl").value.trim();
-        if (!pageUrl) throw new Error("请输入页面链接");
-        await api("/api/docs/import-url", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: pageUrl }),
-        });
-        toast("已保存页面快照");
-        form.reset();
-        loadDocs();
-      } catch (error) {
-        toast(error.message);
-      }
-    });
-
-    document.getElementById("settingsForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      try {
-        await api("/api/settings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            allowedEditors: allowedEditorsInput.value,
-            ai: {
-              baseUrl: aiBaseUrlInput.value,
-              model: aiModelInput.value,
-              apiKey: aiApiKeyInput.value,
-            },
-          }),
-        });
-        aiApiKeyInput.value = "";
-        await loadSettings();
-        toast("设置已保存");
-      } catch (error) {
-        toast(error.message);
-      }
-    });
-
-    loadHeroCopy();
-    loadConfig().then(loadDocs);
-    loadSettings().catch((error) => toast(error.message));
-  </script>
+  <script src="/assets/index.js" defer></script>
 </body>
 </html>
