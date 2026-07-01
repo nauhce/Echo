@@ -6,3 +6,7 @@ data/docs/*.html
 bin/
 EchoAssistant.exe
 node_modules/
+
+# Build artifacts and binaries
+EchoAssistant-*.zip
+Release/
