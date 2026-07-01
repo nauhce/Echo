@@ -5,7 +5,7 @@
       hoverBox.style.display = "none";
       activeId = "";
       renderList();
-      toast("查看模式：评论和需求都可查看");
+      toast(t("viewModeToast"));
     }
 
     commentViewBtn.addEventListener("click", enterCommentView);
@@ -21,7 +21,7 @@
       hoverBox.style.display = "none";
       activeId = "";
       renderList();
-      toast("评论：点击页面元素添加评论");
+      toast(t("commentModeToast"));
     });
 
     async function enterRequirementMode() {
@@ -34,9 +34,9 @@
       await loadRequirements();
       if (!canEditRequirements) {
         requirementMode = "";
-        toast("当前姓名没有编辑权限，已进入查看模式");
+        toast(t("viewOnlyRequirementToast"));
       } else {
-        toast("需求：点击页面区域添加需求说明");
+        toast(t("requirementModeToast"));
       }
       updateToolbar();
       hoverBox.style.display = "none";
@@ -54,7 +54,7 @@
       event.preventDefault();
       const identity = identityNameInput.value.trim();
       if (!identity) {
-        toast("请输入身份信息");
+        toast(t("enterIdentity"));
         identityNameInput.focus();
         return;
       }
@@ -70,7 +70,7 @@
       const minSpin = new Promise(resolve => setTimeout(resolve, 620));
       try {
         await Promise.all([loadAnnotations(), loadRequirements(), minSpin]);
-        toast("已刷新");
+        toast(t("refreshed"));
       } catch (error) {
         await minSpin;
         toast(error.message);
@@ -92,10 +92,10 @@
     requirementText.addEventListener("input", resizeRequirementText);
     document.getElementById("generateRequirement").addEventListener("click", async () => {
       try {
-        if (!selectedRequirementTarget) throw new Error("请先选择页面区域");
+        if (!selectedRequirementTarget) throw new Error(t("selectAreaFirst"));
         const button = document.getElementById("generateRequirement");
         button.disabled = true;
-        button.textContent = "补足中...";
+        button.textContent = t("generating");
         const data = await api("/api/requirements/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -104,6 +104,7 @@
             docId,
             author: author(),
             draftRequirement: requirementText.value,
+            language: i18n.currentLanguage(),
           }),
         });
         requirementText.value = data.requirement;
@@ -113,7 +114,7 @@
       } finally {
         const button = document.getElementById("generateRequirement");
         button.disabled = false;
-        button.textContent = "AI补足";
+        button.textContent = t("aiComplete");
       }
     });
     commentForm.addEventListener("submit", async (event) => {
@@ -129,7 +130,7 @@
           }),
         });
         dialog.close();
-        toast("批注已提交");
+        toast(t("commentSubmitted"));
       } catch (error) {
         toast(error.message);
       }
@@ -138,7 +139,7 @@
     requirementForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       try {
-        if (!selectedRequirementTarget) throw new Error("请先选择页面区域");
+        if (!selectedRequirementTarget) throw new Error(t("selectAreaFirst"));
         const path = editingRequirementId
           ? `/api/requirements/${editingRequirementId}`
           : `/api/docs/${encodeURIComponent(docId)}/requirements`;
@@ -152,13 +153,23 @@
           }),
         });
         requirementDialog.close();
-        toast("需求已保存");
+        toast(t("requirementSaved"));
       } catch (error) {
         toast(error.message);
       }
     });
 
     frame.addEventListener("load", installFrameHandlers);
+    window.addEventListener("echo:languagechange", () => {
+      document.title = t("collaboration");
+      updateToolbar();
+      renderList();
+      if (selectedTarget) selectedElement.textContent = selectedTarget.elementLabel || selectedTarget.selector;
+      if (selectedRequirementTarget) selectedRequirementElement.textContent = selectedRequirementTarget.elementLabel || selectedRequirementTarget.selector;
+      const generateButton = document.getElementById("generateRequirement");
+      if (!generateButton.disabled) generateButton.textContent = t("aiComplete");
+    });
+    document.title = t("collaboration");
     const savedIdentity = cachedAuthor();
     if (savedIdentity) {
       enterReview(savedIdentity);

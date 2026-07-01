@@ -1,4 +1,6 @@
 const docId = decodeURIComponent(location.pathname.split("/").pop());
+    const i18n = window.EchoI18n;
+    const t = (key, vars) => i18n.t(key, vars);
     const frame = document.getElementById("demoFrame");
     const overlay = document.getElementById("overlay");
     const hoverBox = document.getElementById("hoverBox");
@@ -48,7 +50,7 @@ const docId = decodeURIComponent(location.pathname.split("/").pop());
     async function api(path, options) {
       const res = await fetch(path, options);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "请求失败");
+      if (!res.ok) throw new Error(data.error ? i18n.translateError(data.error) : t("requestFailed"));
       return data;
     }
 
@@ -125,7 +127,7 @@ const docId = decodeURIComponent(location.pathname.split("/").pop());
     }
 
     function author() {
-      return authorInput.value.trim() || "匿名";
+      return authorInput.value.trim() || t("anonymous");
     }
 
     function isRequirementMode() {
@@ -139,8 +141,8 @@ const docId = decodeURIComponent(location.pathname.split("/").pop());
     function updateToolbar() {
       modeBtn.classList.toggle("active", annotationMode);
       commentViewBtn.classList.toggle("active", !annotationMode && !isRequirementMode());
-      modeBtn.setAttribute("aria-label", "评论");
-      commentModeWrap.dataset.tooltip = "评论";
+      modeBtn.setAttribute("aria-label", t("comment"));
+      commentModeWrap.dataset.tooltip = t("comment");
       requirementEditBtn.classList.toggle("active", requirementMode === "edit");
       requirementEditWrap.style.display = canEditRequirements ? "inline-flex" : "none";
     }
@@ -204,7 +206,7 @@ const docId = decodeURIComponent(location.pathname.split("/").pop());
     }
 
     function elementLabel(el) {
-      if (isPageTarget(el)) return "页面整体";
+      if (isPageTarget(el)) return t("wholePage");
       if (!el) return "";
       const text = normalizeText(el.innerText || el.value || el.getAttribute("aria-label") || el.getAttribute("title") || "");
       const tag = el.tagName.toLowerCase();
@@ -299,7 +301,7 @@ const docId = decodeURIComponent(location.pathname.split("/").pop());
 
     function openRequirement(el, event, existing) {
       if (!canEditRequirements) {
-        toast("当前姓名只能查看需求");
+        toast(t("viewOnlyRequirement"));
         return;
       }
       const target = existing ? findElement(existing.selector) || frame.contentDocument.body : (isPageTarget(el) ? frame.contentDocument.body : el);

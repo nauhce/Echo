@@ -1,114 +1,124 @@
 # Echo
 
-Echo is a lightweight local review tool for interactive HTML prototypes and product requirement demos.
+Echo is a lightweight review tool for interactive HTML prototypes, product demos, and requirement drafts.
 
-It lets you run a small web service on your own computer, import an HTML demo, and share a LAN review link with teammates. Reviewers can open the link in a browser, add comments to specific UI elements, reply to comments, and mark items as resolved.
+It runs as a small local web service. You import an HTML file or save a snapshot from a reachable URL, then share a review link with teammates on the same LAN or VPN. Reviewers can select UI elements, add comments, reply, mark comments resolved, and collaborate on requirement descriptions.
 
-## What It Does
+## Features
 
-- Runs locally on your machine.
-- Shares review pages over your LAN or VPN.
-- Imports standalone HTML demo files or saves HTML snapshots from reachable URLs.
-- Lets reviewers annotate page elements and UI regions.
-- Keeps comments synced for everyone using the same local service.
-- Supports replies and resolved / reopened states.
-- Hides annotation pins when the original element is no longer visible because of pagination, filtering, or collapsed content.
-- Keeps all review data on your local machine.
+- Import standalone HTML files.
+- Save local snapshots from reachable page URLs.
+- Share review links over LAN or VPN.
+- Comment on specific page elements and regions.
+- Reply to comments and mark them resolved or reopened.
+- Add requirement descriptions for selected UI areas.
+- Use AI to complete requirement drafts when an OpenAI-compatible API key is configured.
+- Configure requirement collaborators.
+- Switch the interface between Chinese and English globally.
+- Keep review data and imported documents on the host machine.
 
-## Current Notes
+## Startup
 
-- The requirement-document mode is an early, unfinished module. Basic storage, permissions, and AI-generation plumbing are present, but the workflow still needs more testing and polish before it should be considered complete.
-
-## Quick Start
-
-On Windows:
-
-1. Double-click `Echo.bat`.
-2. The console page opens automatically at:
-
-   ```text
-   http://localhost:5177
-   ```
-
-3. Import an HTML file from the console, or paste a reachable page URL to save a snapshot.
-4. Choose the share address that teammates can reach, then copy the review link shown in the console, for example:
-
-   ```text
-   http://192.168.x.x:5177/review/your-document
-   ```
-
-5. Send that link to teammates on the same LAN or VPN.
-6. Keep the startup window open while the review is running.
-7. Close the startup window, or double-click `停止评审助手.bat`, to stop the service.
-
-## Reviewing a Demo
-
-On the review page:
-
-1. Click `开启批注` to enter annotation mode.
-2. Click an element or region in the demo.
-3. Add a comment and submit it.
-4. Click an annotation pin to view comments at that location.
-5. Click a comment card in the sidebar to locate and highlight the original area.
-6. Use replies and resolved / reopened states to track decisions.
-
-If a commented element is no longer visible because the demo content changed, the annotation pin is hidden while the sidebar record remains available.
-
-## Data Storage
-
-Review data is stored locally:
+Startup helpers are in:
 
 ```text
-data/store.json
+startup-methods/
 ```
 
-Imported HTML copies are stored locally:
+Windows:
 
-```text
-data/docs/
+- `startup-methods/windows-echo.bat`: visible startup window, recommended for startup and troubleshooting.
+- `startup-methods/windows-echo-hidden.vbs`: no-console startup for daily use.
+- `startup-methods/windows-echo-stop.bat`: stop the service on port `5177`.
+
+macOS:
+
+- `startup-methods/macos-echo.command`: visible startup window, recommended for startup and troubleshooting.
+- `startup-methods/macos-echo-stop.command`: stop the service on port `5177`.
+
+On macOS, grant execute permission once after downloading or unzipping:
+
+```sh
+chmod +x startup-methods/macos-echo.command startup-methods/macos-echo-stop.command
 ```
 
-URL imports save the fetched HTML in the same folder. A `<base>` tag is added when needed so relative images, styles, and scripts can still load from the original page URL.
-
-These runtime files are ignored by Git by default.
-
-## Troubleshooting
-
-If teammates cannot open the review link, check:
-
-- The startup window is still open.
-- You sent the LAN IP link, not `localhost`.
-- If VPN creates multiple IP addresses, choose the reachable address in the console before copying the review link.
-- Everyone is on the same LAN or VPN.
-- Windows Firewall allows access to port `5177`.
-- Port `5177` is not already used by another process.
-
-If the port is stuck, run:
-
-```text
-停止评审助手.bat
-```
-
-Then start the assistant again.
-
-## Development
-
-This project uses only built-in Node.js modules. No package installation is required.
-
-Run it manually:
-
-```powershell
-node server.js
-```
-
-Then open:
+After startup, open:
 
 ```text
 http://localhost:5177
 ```
 
-## Repository Notes
+See [startup-methods/README.md](startup-methods/README.md) for detailed startup notes.
 
-The repository includes the app source, static UI, Windows helper scripts, and documentation.
+## Manual Run
 
-Local review data, uploaded/imported HTML documents, and server logs are intentionally excluded from version control.
+If you prefer the terminal, no dependency install is required for normal startup:
+
+```sh
+node server.js
+```
+
+The default port is `5177`. You can override it:
+
+```sh
+PORT=3000 node server.js
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:PORT=3000
+node server.js
+```
+
+## Review Flow
+
+1. Start Echo and open `http://localhost:5177`.
+2. Import an HTML file or save a snapshot from a URL.
+3. Open the generated review page.
+4. Share a reachable LAN/VPN review link with teammates.
+5. Reviewers enter their name, choose view/comment/requirement mode, and collaborate.
+6. Keep the host service running while teammates are reviewing.
+
+## Data Storage
+
+Runtime data is stored locally:
+
+```text
+data/store.json
+data/docs/
+```
+
+These files are ignored by Git. Imported URL snapshots are saved under `data/docs/`.
+
+## AI Settings
+
+AI-assisted requirement generation uses the settings configured on the home page:
+
+- OpenAI-compatible Base URL
+- model name
+- API key
+
+The generated requirement language follows the current UI language.
+
+## Troubleshooting
+
+If teammates cannot open a review link:
+
+- Make sure Echo is still running on the host machine.
+- Share a LAN/VPN IP link, not `localhost`.
+- Check that everyone is on the same LAN or VPN.
+- Allow port `5177` through the host firewall.
+- Stop any other process using port `5177`.
+
+Use the stop helper in `startup-methods/` if the port is stuck.
+
+## Build
+
+The project includes a `pkg` build script:
+
+```sh
+npm run build
+```
+
+This creates platform executables under `bin/`. The resulting files are larger because they include a Node.js runtime.

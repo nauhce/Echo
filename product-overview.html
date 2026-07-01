@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HTML 需求评审助手 - 使用说明</title>
+  <title>Echo - 使用说明</title>
   <style>
     body {
       margin: 0;
@@ -63,38 +63,38 @@
 <body>
   <main>
     <section class="hero">
-      <h1>HTML 需求评审助手</h1>
-      <p>本地启动、内网访问、多人同步批注，适合产品 HTML demo 评审。</p>
+      <h1>Echo</h1>
+      <p>本地启动、内网访问、多人同步批注，适合产品 HTML demo 和需求评审。</p>
     </section>
 
     <section>
       <h2>一、启动</h2>
       <ol>
-        <li>双击 <code>Echo.bat</code>。</li>
+        <li>Windows 双击 <code>startup-methods/windows-echo.bat</code>；macOS 双击 <code>startup-methods/macos-echo.command</code>。</li>
         <li>等待浏览器自动打开 <code>http://localhost:5177</code>。</li>
         <li>在控制台导入 HTML 文件，或输入一个可访问链接保存页面快照。</li>
-        <li>在“可分享地址”里选择同事能访问的地址，再复制评审链接发给同事。</li>
+        <li>选择同事能访问的地址，再复制评审链接发给同事。</li>
       </ol>
     </section>
 
     <section>
       <h2>二、评审</h2>
       <ul>
-        <li>点击“开启批注”，再点击页面元素添加批注。</li>
+        <li>点击“评论”，再点击页面元素添加批注。</li>
         <li>点击批注圆点，查看该位置的批注记录。</li>
         <li>点击右侧批注卡片，定位回原区域并高亮闪烁。</li>
-        <li>原元素当前不显示时，批注点会隐藏，但右侧记录保留。</li>
+        <li>切换“需求”模式后，可以为选中区域编写需求说明。</li>
       </ul>
     </section>
 
     <section>
       <h2>三、结束</h2>
-      <p>关闭启动窗口即可停止服务；如果窗口找不到，可以双击 <code>停止评审助手.bat</code>。</p>
+      <p>Windows 使用 <code>startup-methods/windows-echo-stop.bat</code> 停止服务；macOS 使用 <code>startup-methods/macos-echo-stop.command</code> 停止服务。</p>
     </section>
 
     <section>
       <h2>四、给同事访问</h2>
-      <p>同事必须和你在同一内网或 VPN。请在控制台的“可分享地址”里选择同事能访问的 IP，再发送评审链接，例如 <code>http://192.168.x.x:5177/review/...</code>，不要发送 <code>localhost</code> 链接。</p>
+      <p>同事必须和你在同一内网或 VPN。请在控制台选择同事能访问的 IP，再发送评审链接，例如 <code>http://192.168.x.x:5177/review/...</code>，不要发送 <code>localhost</code> 链接。</p>
     </section>
   </main>
 </body>

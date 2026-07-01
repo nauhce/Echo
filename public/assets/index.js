@@ -1,4 +1,6 @@
 const docsEl = document.getElementById("docs");
+    const i18n = window.EchoI18n;
+    const t = (key, vars) => i18n.t(key, vars);
     const createFolderBtn = document.getElementById("createFolderBtn");
     const docSearchInput = document.getElementById("docSearchInput");
     const toastEl = document.getElementById("toast");
@@ -22,12 +24,15 @@ const docsEl = document.getElementById("docs");
     const collaboratorsBackdrop = document.getElementById("collaboratorsBackdrop");
     const closeCollaboratorsButton = document.getElementById("closeCollaboratorsButton");
     const collaboratorsInput = document.getElementById("collaboratorsInput");
+    const fileInput = document.getElementById("file");
+    const chooseFileBtn = document.getElementById("chooseFileBtn");
+    const selectedFileName = document.getElementById("selectedFileName");
     const defaultHeroCopy = {
-      title: heroTitleEl.textContent,
-      desc: heroDescEl.textContent,
+      title: () => t("heroTitle"),
+      desc: () => t("heroDesc"),
     };
-    const defaultAppTitle = appTitleEl.textContent;
-    const defaultFileHint = "导入html格式的文件，可以是文档、demo或者设计图。";
+    const defaultAppTitle = () => t("appTitle");
+    const defaultFileHint = () => t("fileHint");
     let config = null;
     let shareOrigin = location.origin;
     let shareOrigins = [location.origin];
@@ -44,7 +49,7 @@ const docsEl = document.getElementById("docs");
     async function api(path, options) {
       const res = await fetch(path, options);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "请求失败");
+      if (!res.ok) throw new Error(data.error ? i18n.translateError(data.error) : t("requestFailed"));
       return data;
     }
 
@@ -54,7 +59,7 @@ const docsEl = document.getElementById("docs");
 
     async function copy(text) {
       await navigator.clipboard.writeText(text);
-      toast("链接已复制");
+      toast(t("linkCopied"));
     }
 
     async function loadConfig() {
@@ -71,7 +76,7 @@ const docsEl = document.getElementById("docs");
 
     function shareOptions(doc) {
       return shareOrigins.map((origin, index) => {
-        const label = index === 0 ? `本机：${origin}` : `可选地址 ${index}：${origin}`;
+        const label = index === 0 ? t("localMachine", { origin }) : t("optionalAddress", { index, origin });
         return `<button class="share-option" type="button" data-share-origin="${escapeHtml(origin)}" data-share-doc="${escapeHtml(doc.id)}">${escapeHtml(label)}</button>`;
       }).join("");
     }
@@ -80,7 +85,7 @@ const docsEl = document.getElementById("docs");
       const { settings } = await api("/api/settings");
       aiBaseUrlInput.value = settings.ai.baseUrl || "https://api.openai.com/v1";
       aiModelInput.value = settings.ai.model || "gpt-4o-mini";
-      aiKeyStatus.textContent = settings.ai.hasApiKey ? "已保存 API Key；留空提交会继续沿用。" : "尚未配置 API Key。";
+      aiKeyStatus.textContent = settings.ai.hasApiKey ? t("apiKeySaved") : t("apiKeyMissing");
     }
 
     function docCard(doc) {
@@ -88,14 +93,14 @@ const docsEl = document.getElementById("docs");
         <article class="doc" draggable="true" data-doc-id="${escapeHtml(doc.id)}">
           <div>
             <h3>${escapeHtml(doc.title)}</h3>
-            <div class="meta">ID：${escapeHtml(doc.id)} · 文件：${escapeHtml(doc.filename || "")}</div>
-            ${doc.sourceUrl ? `<div class="meta">来源：${escapeHtml(doc.sourceUrl)}</div>` : ""}
-            <div class="meta collaborator-preview">协作者：${collaboratorLabel(doc)}</div>
-            <div class="meta">评审链接：${escapeHtml(shareUrl(doc))}</div>
+            <div class="meta">${t("id")}：${escapeHtml(doc.id)} · ${t("file")}：${escapeHtml(doc.filename || "")}</div>
+            ${doc.sourceUrl ? `<div class="meta">${t("source")}：${escapeHtml(doc.sourceUrl)}</div>` : ""}
+            <div class="meta collaborator-preview">${t("collaboratorPreview")}：${collaboratorLabel(doc)}</div>
+            <div class="meta">${t("reviewLink")}：${escapeHtml(shareUrl(doc))}</div>
           </div>
           <div class="actions">
-            <a class="button" href="/review/${encodeURIComponent(doc.id)}" target="_blank">开始</a>
-            <button class="icon-button collaborator-button" type="button" data-collaborators-doc="${escapeHtml(doc.id)}" aria-label="设置协作者" title="设置协作者">
+            <a class="button" href="/review/${encodeURIComponent(doc.id)}" target="_blank">${t("start")}</a>
+            <button class="icon-button collaborator-button" type="button" data-collaborators-doc="${escapeHtml(doc.id)}" aria-label="${t("setCollaborators")}" title="${t("setCollaborators")}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -104,11 +109,11 @@ const docsEl = document.getElementById("docs");
               </svg>
             </button>
             <div class="share-action">
-              <button class="secondary share-button" type="button" data-share-toggle="${escapeHtml(doc.id)}">复制分享链接 <span class="chevron">⌄</span></button>
+              <button class="secondary share-button" type="button" data-share-toggle="${escapeHtml(doc.id)}">${t("copyShareLink")} <span class="chevron">⌄</span></button>
               <div class="share-menu">${shareOptions(doc)}</div>
             </div>
             <div class="menu-action">
-              <button class="icon-button" type="button" data-doc-menu="${escapeHtml(doc.id)}" aria-label="更多操作" title="更多操作">
+              <button class="icon-button" type="button" data-doc-menu="${escapeHtml(doc.id)}" aria-label="${t("moreActions")}" title="${t("moreActions")}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <circle cx="12" cy="12" r="1"></circle>
                   <circle cx="19" cy="12" r="1"></circle>
@@ -116,9 +121,9 @@ const docsEl = document.getElementById("docs");
                 </svg>
               </button>
               <div class="share-menu">
-                <a class="share-option" href="/api/docs/${encodeURIComponent(doc.id)}/export">导出批注</a>
-                <button class="share-option" type="button" data-reveal-doc="${escapeHtml(doc.id)}">浏览所在位置</button>
-                <button class="share-option" type="button" data-delete-doc="${escapeHtml(doc.id)}">删除</button>
+                <a class="share-option" href="/api/docs/${encodeURIComponent(doc.id)}/export">${t("exportComments")}</a>
+                <button class="share-option" type="button" data-reveal-doc="${escapeHtml(doc.id)}">${t("revealInFolder")}</button>
+                <button class="share-option" type="button" data-delete-doc="${escapeHtml(doc.id)}">${t("delete")}</button>
               </div>
             </div>
           </div>
@@ -139,9 +144,9 @@ const docsEl = document.getElementById("docs");
         <section class="folder-group" data-folder-drop="${escapeHtml(folder.id)}">
           <div class="folder-head">
             <div class="folder-title">${folderIcon()}<span>${escapeHtml(folder.name)}</span></div>
-            <span class="folder-count">${folderDocs.length} 个文档</span>
+            <span class="folder-count">${folderDocs.length} ${t("documents")}</span>
           </div>
-          ${folderDocs.length ? folderDocs.map(docCard).join("") : `<div class="folder-empty">拖动文档到这里</div>`}
+          ${folderDocs.length ? folderDocs.map(docCard).join("") : `<div class="folder-empty">${t("dragHere")}</div>`}
         </section>
       `;
     }
@@ -152,7 +157,7 @@ const docsEl = document.getElementById("docs");
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folderId }),
       });
-      toast(folderId ? "文档已移动到文件夹" : "文档已移出文件夹");
+      toast(folderId ? t("docMovedToFolder") : t("docMovedOutFolder"));
       loadDocs();
     }
 
@@ -198,11 +203,11 @@ const docsEl = document.getElementById("docs");
         ? docs.filter(doc => String(doc.title || "").toLowerCase().includes(query))
         : docs;
       if (!filteredDocs.length && query) {
-        docsEl.innerHTML = `<div class="folder-empty">没有找到匹配的文档</div>`;
+        docsEl.innerHTML = `<div class="folder-empty">${t("noMatchingDocs")}</div>`;
         return;
       }
       if (!docs.length && !folders.length) {
-        docsEl.innerHTML = `<div class="meta">还没有导入文档。</div>`;
+        docsEl.innerHTML = `<div class="meta">${t("noDocs")}</div>`;
         return;
       }
       const folderIds = new Set(folders.map(folder => folder.id));
@@ -215,12 +220,12 @@ const docsEl = document.getElementById("docs");
         <section class="folder-drop-root ${visibleFolders.length ? "folder-group" : ""}" data-folder-drop="">
           ${visibleFolders.length && !query ? `
             <div class="folder-head">
-              <div class="folder-title">${folderIcon()}<span>未归档</span></div>
-              <span class="folder-count">${rootDocs.length} 个文档</span>
+              <div class="folder-title">${folderIcon()}<span>${t("unfiled")}</span></div>
+              <span class="folder-count">${rootDocs.length} ${t("documents")}</span>
             </div>
           ` : ""}
           ${rootDocs.length ? rootDocs.map(docCard).join("") : ""}
-          ${!rootDocs.length && visibleFolders.length && !query ? `<div class="folder-empty">拖动文档到这里移出文件夹</div>` : ""}
+          ${!rootDocs.length && visibleFolders.length && !query ? `<div class="folder-empty">${t("dragHereToUnfile")}</div>` : ""}
         </section>
       ` : "";
       docsEl.innerHTML = `
@@ -252,7 +257,7 @@ const docsEl = document.getElementById("docs");
           event.stopPropagation();
           try {
             await api(`/api/docs/${encodeURIComponent(btn.dataset.revealDoc)}/reveal`, { method: "POST" });
-            toast("已打开文档所在位置");
+            toast(t("openedFolder"));
           } catch (error) {
             toast(error.message);
           }
@@ -263,10 +268,10 @@ const docsEl = document.getElementById("docs");
           event.stopPropagation();
           const doc = latestDocs.find(item => item.id === btn.dataset.deleteDoc);
           if (!doc) return;
-          if (!confirm(`确定删除「${doc.title}」吗？相关批注和需求也会一并删除。`)) return;
+          if (!confirm(t("deleteDocConfirm", { title: doc.title }))) return;
           try {
             await api(`/api/docs/${encodeURIComponent(doc.id)}`, { method: "DELETE" });
-            toast("文档已删除");
+            toast(t("docDeleted"));
             loadDocs();
           } catch (error) {
             toast(error.message);
@@ -290,16 +295,18 @@ const docsEl = document.getElementById("docs");
 
     function collaboratorLabel(doc) {
       const collaborators = Array.isArray(doc.collaborators) ? doc.collaborators : [];
-      return collaborators.length ? escapeHtml(collaborators.join("、")) : "所有人可协作";
+      return collaborators.length ? escapeHtml(collaborators.join("、")) : t("everyoneCanCollaborate");
     }
 
     function applyHeroCopy(copy) {
-      heroTitleEl.textContent = copy.title || defaultHeroCopy.title;
-      heroDescEl.textContent = copy.desc || defaultHeroCopy.desc;
+      heroTitleEl.textContent = copy.title || defaultHeroCopy.title();
+      heroDescEl.textContent = copy.desc || defaultHeroCopy.desc();
     }
 
     function loadAppTitle() {
-      appTitleEl.textContent = localStorage.getItem("echo-app-title") || defaultAppTitle;
+      const title = localStorage.getItem("echo-app-title") || defaultAppTitle();
+      appTitleEl.textContent = title;
+      document.title = title;
     }
 
     function openAppTitleEditor() {
@@ -319,8 +326,9 @@ const docsEl = document.getElementById("docs");
       try {
         const saved = JSON.parse(localStorage.getItem("echo-hero-copy") || "null");
         if (saved && (saved.title || saved.desc)) applyHeroCopy(saved);
+        else applyHeroCopy({});
       } catch {
-        applyHeroCopy(defaultHeroCopy);
+        applyHeroCopy({});
       }
     }
 
@@ -372,11 +380,11 @@ const docsEl = document.getElementById("docs");
       renderDocs(latestDocs, latestFolders);
     });
     createFolderBtn.addEventListener("click", async () => {
-      const name = prompt("请输入文件夹名称");
+      const name = prompt(t("enterFolderName"));
       if (name === null) return;
       const folderName = name.trim();
       if (!folderName) {
-        toast("文件夹名称不能为空");
+        toast(t("folderNameRequired"));
         return;
       }
       try {
@@ -385,7 +393,7 @@ const docsEl = document.getElementById("docs");
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: folderName }),
         });
-        toast("文件夹已创建");
+        toast(t("folderCreated"));
         loadDocs();
       } catch (error) {
         toast(error.message);
@@ -411,46 +419,50 @@ const docsEl = document.getElementById("docs");
     heroEditor.addEventListener("submit", (event) => {
       event.preventDefault();
       const copy = {
-        title: heroTitleInput.value.trim() || defaultHeroCopy.title,
-        desc: heroDescInput.value.trim() || defaultHeroCopy.desc,
+        title: heroTitleInput.value.trim() || defaultHeroCopy.title(),
+        desc: heroDescInput.value.trim() || defaultHeroCopy.desc(),
       };
       localStorage.setItem("echo-hero-copy", JSON.stringify(copy));
       applyHeroCopy(copy);
       closeHeroEditor();
-      toast("文案已保存");
+      toast(t("copySaved"));
     });
     document.getElementById("appTitleForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      const title = appTitleInput.value.trim() || defaultAppTitle;
+      const title = appTitleInput.value.trim() || defaultAppTitle();
       localStorage.setItem("echo-app-title", title);
       appTitleEl.textContent = title;
       closeAppTitleEditor();
-      toast("标题已保存");
+      toast(t("titleSaved"));
     });
 
-    document.getElementById("file").addEventListener("change", (event) => {
-      const file = event.currentTarget.files && event.currentTarget.files[0];
+    function updateSelectedFile() {
+      const file = fileInput.files && fileInput.files[0];
+      selectedFileName.textContent = file ? file.name : t("noFileSelected");
       document.getElementById("fileNamePreview").textContent = file
-        ? `文档名称：${file.name.replace(/\.html?$/i, "")}`
-        : defaultFileHint;
-    });
+        ? t("documentName", { name: file.name.replace(/\.html?$/i, "") })
+        : defaultFileHint();
+    }
+
+    chooseFileBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", updateSelectedFile);
 
     document.getElementById("uploadForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
       try {
-        const file = document.getElementById("file").files[0];
-        if (!file) throw new Error("请选择 HTML 文件");
+        const file = fileInput.files[0];
+        if (!file) throw new Error(t("selectHtmlFile"));
         const data = new FormData(form);
         data.set("title", file.name.replace(/\.html?$/i, ""));
         await fetch("/api/docs/upload", { method: "POST", body: data }).then(async res => {
           const body = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(body.error || "上传失败");
+          if (!res.ok) throw new Error(body.error ? i18n.translateError(body.error) : t("uploadFailed"));
           return body;
         });
-        toast("已上传 HTML");
+        toast(t("htmlUploaded"));
         form.reset();
-        document.getElementById("fileNamePreview").textContent = defaultFileHint;
+        updateSelectedFile();
         loadDocs();
       } catch (error) {
         toast(error.message);
@@ -462,13 +474,13 @@ const docsEl = document.getElementById("docs");
       const form = event.currentTarget;
       try {
         const pageUrl = document.getElementById("pageUrl").value.trim();
-        if (!pageUrl) throw new Error("请输入页面链接");
+        if (!pageUrl) throw new Error(t("enterPageUrl"));
         await api("/api/docs/import-url", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: pageUrl }),
         });
-        toast("已保存页面快照");
+        toast(t("snapshotSaved"));
         form.reset();
         loadDocs();
       } catch (error) {
@@ -492,7 +504,7 @@ const docsEl = document.getElementById("docs");
         });
         aiApiKeyInput.value = "";
         await loadSettings();
-        toast("设置已保存");
+        toast(t("settingsSaved"));
         closeSettings();
       } catch (error) {
         toast(error.message);
@@ -502,13 +514,13 @@ const docsEl = document.getElementById("docs");
     document.getElementById("collaboratorsForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       try {
-        if (!currentCollaboratorDocId) throw new Error("请先选择文档");
+        if (!currentCollaboratorDocId) throw new Error(t("chooseDocFirst"));
         await api(`/api/docs/${encodeURIComponent(currentCollaboratorDocId)}/collaborators`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ collaborators: collaboratorsInput.value }),
         });
-        toast("协作者已保存");
+        toast(t("collaboratorsSaved"));
         closeCollaborators();
         loadDocs();
       } catch (error) {
@@ -520,3 +532,17 @@ const docsEl = document.getElementById("docs");
     loadHeroCopy();
     loadConfig().then(loadDocs);
     loadSettings().catch((error) => toast(error.message));
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadAppTitle();
+      loadHeroCopy();
+    });
+
+    window.addEventListener("echo:languagechange", () => {
+      document.title = localStorage.getItem("echo-app-title") || defaultAppTitle();
+      loadAppTitle();
+      loadHeroCopy();
+      renderDocs(latestDocs, latestFolders);
+      loadSettings().catch((error) => toast(error.message));
+      updateSelectedFile();
+    });

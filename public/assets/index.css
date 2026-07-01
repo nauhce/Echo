@@ -58,6 +58,34 @@
       align-items: center;
       gap: 10px;
     }
+    .language-control {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.84) inset;
+    }
+    .language-control select {
+      width: auto;
+      min-width: 92px;
+      min-height: 30px;
+      border: 0;
+      border-left: 1px solid var(--line);
+      border-radius: 0;
+      padding: 0 0 0 8px;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      box-shadow: none;
+    }
     .icon-button {
       width: 42px;
       min-height: 42px;
@@ -274,21 +302,45 @@
       outline: none;
       transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
     }
-    input[type="file"] {
+    .native-file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .file-picker {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
       padding: 8px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      overflow: hidden;
+    }
+    .file-picker:focus-within {
+      border-color: #9ca3af;
+      box-shadow: var(--focus);
+      background: #fff;
+    }
+    .file-picker-button {
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 8px 12px;
+    }
+    .file-picker-name {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     input::placeholder {
       color: var(--soft);
-    }
-    input[type="file"]::file-selector-button {
-      margin-right: 10px;
-      border: 0;
-      border-radius: 7px;
-      background: #f0efeb;
-      color: var(--text);
-      padding: 8px 10px;
-      font: inherit;
-      cursor: pointer;
     }
     input:focus, select:focus {
       border-color: #9ca3af;
@@ -651,4 +703,7 @@
       .actions > * { flex: 1; }
       .doc-toolbar { justify-content: stretch; }
       .doc-toolbar > * { flex: 1; }
+      .header-actions { gap: 8px; }
+      .pill { display: none; }
+      .language-control span { display: none; }
     }

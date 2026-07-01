@@ -123,7 +123,7 @@ function installFrameHandlers() {
         activeId = item.id;
         renderList();
         hidePinPopover();
-        toast("原批注元素当前未显示，批注点已隐藏");
+        toast(t("missingAnnotationTarget"));
         return;
       }
       setTimeout(() => {
@@ -152,11 +152,11 @@ function installFrameHandlers() {
             <div style="min-width:0;">
               <div class="pin-popover-title">
                 <span class="index">${index + 1}</span>
-                <span>需求说明</span>
+                <span>${t("requirementPopoverTitle")}</span>
               </div>
               <div class="element" style="margin-top:6px;">${escapeHtml(item.elementLabel || item.selector)}</div>
             </div>
-            <button class="pin-popover-close" type="button" aria-label="关闭">×</button>
+            <button class="pin-popover-close" type="button" aria-label="${t("close")}">×</button>
           </div>
           <div class="note markdown-note">${renderMarkdown(item.requirement)}</div>
           <div class="meta">${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
@@ -177,22 +177,22 @@ function installFrameHandlers() {
           <div style="min-width:0;">
             <div class="pin-popover-title">
               <span class="index">${index + 1}</span>
-              <span>${item.status === "resolved" ? "已解决批注" : "未解决批注"}</span>
+              <span>${item.status === "resolved" ? t("resolvedComment") : t("openComment")}</span>
             </div>
             <div class="element" style="margin-top:6px;">${escapeHtml(item.elementLabel || item.selector)}</div>
           </div>
-          <button class="pin-popover-close" type="button" aria-label="关闭">×</button>
+          <button class="pin-popover-close" type="button" aria-label="${t("close")}">×</button>
         </div>
         <div class="note">${escapeHtml(item.note)}</div>
         <div class="meta">${escapeHtml(item.author)} · ${new Date(item.createdAt).toLocaleString()}</div>
         <div class="pin-popover-replies">
-          <div class="meta">回复记录 ${replies.length}</div>
+          <div class="meta">${t("replyHistory", { count: replies.length })}</div>
           ${replies.length ? replies.map(reply => `
             <div class="reply">
               <div class="note">${escapeHtml(reply.note)}</div>
               <div class="meta">${escapeHtml(reply.author)} · ${new Date(reply.createdAt).toLocaleString()}</div>
             </div>
-          `).join("") : `<div class="meta">暂无回复。</div>`}
+          `).join("") : `<div class="meta">${t("noReplies")}</div>`}
         </div>
       `;
       overlay.appendChild(popover);
@@ -261,10 +261,10 @@ function installFrameHandlers() {
     }
 
     function renderRequirementList() {
-      document.getElementById("openCount").textContent = `需求 ${requirements.length}`;
-      document.getElementById("resolvedCount").textContent = "需求";
+      document.getElementById("openCount").textContent = t("requirementsCount", { count: requirements.length });
+      document.getElementById("resolvedCount").textContent = t("requirement");
       if (!requirements.length) {
-        list.innerHTML = `<div class="empty">${isRequirementEditMode() && canEditRequirements ? "还没有需求说明。进入需求状态后，在左侧页面中点击区域即可添加。" : "还没有需求说明。"}</div>`;
+        list.innerHTML = `<div class="empty">${isRequirementEditMode() && canEditRequirements ? t("noRequirementsEdit") : t("noRequirements")}</div>`;
         renderPins();
         return;
       }
@@ -279,8 +279,8 @@ function installFrameHandlers() {
               </div>
             </div>
             ${isRequirementEditMode() && canEditRequirements ? `<div class="card-tools">
-              <button class="icon-button" type="button" title="编辑需求说明" aria-label="编辑需求说明" data-edit-requirement="${item.id}">✎</button>
-              <button class="icon-button" type="button" title="删除需求" aria-label="删除需求" data-delete-requirement="${item.id}">×</button>
+              <button class="icon-button" type="button" title="${t("editRequirement")}" aria-label="${t("editRequirement")}" data-edit-requirement="${item.id}">✎</button>
+              <button class="icon-button" type="button" title="${t("deleteRequirement")}" aria-label="${t("deleteRequirement")}" data-delete-requirement="${item.id}">×</button>
             </div>` : ""}
           </div>
           <div class="note markdown-note">${renderMarkdown(item.requirement)}</div>
@@ -296,7 +296,7 @@ function installFrameHandlers() {
         button.addEventListener("click", async () => {
           const item = requirements.find(row => row.id === button.dataset.deleteRequirement);
           if (!item) return;
-          if (!confirm("确定删除这条需求说明吗？")) return;
+          if (!confirm(t("deleteRequirementConfirm"))) return;
           await api(`/api/requirements/${item.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
@@ -316,8 +316,8 @@ function installFrameHandlers() {
     }
 
     function renderOverviewList() {
-      document.getElementById("openCount").textContent = `评论 ${annotations.length}`;
-      document.getElementById("resolvedCount").textContent = `需求 ${requirements.length}`;
+      document.getElementById("openCount").textContent = t("commentsCount", { count: annotations.length });
+      document.getElementById("resolvedCount").textContent = t("requirementsCount", { count: requirements.length });
       const showComments = showCommentsInput.checked;
       const showRequirements = showRequirementsInput.checked;
       const rows = [
@@ -325,7 +325,7 @@ function installFrameHandlers() {
         ...(showRequirements ? requirements.map((item) => ({ ...item, kind: "requirement" })) : []),
       ].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       if (!rows.length) {
-        list.innerHTML = `<div class="empty">${showComments || showRequirements ? "还没有可查看的内容。" : "评论和需求已隐藏。"}</div>`;
+        list.innerHTML = `<div class="empty">${showComments || showRequirements ? t("noVisibleContent") : t("hiddenContent")}</div>`;
         renderPins();
         return;
       }
@@ -336,7 +336,7 @@ function installFrameHandlers() {
               <div class="index ${item.kind === "requirement" ? "requirement-index" : ""}">${index + 1}</div>
               <div style="min-width:0;">
                 <div class="element">${escapeHtml(item.elementLabel || item.selector)}</div>
-                <div class="meta">${item.kind === "requirement" ? "需求" : "评论"} · ${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
+                <div class="meta">${item.kind === "requirement" ? t("kindRequirement") : t("kindComment")} · ${escapeHtml(item.author)} · ${new Date(item.updatedAt || item.createdAt).toLocaleString()}</div>
               </div>
             </div>
           </div>
@@ -369,10 +369,10 @@ function installFrameHandlers() {
       }
       const open = annotations.filter(item => item.status !== "resolved").length;
       const resolved = annotations.length - open;
-      document.getElementById("openCount").textContent = `未解决评论 ${open}`;
-      document.getElementById("resolvedCount").textContent = `已解决评论 ${resolved}`;
+      document.getElementById("openCount").textContent = t("unresolvedComments", { count: open });
+      document.getElementById("resolvedCount").textContent = t("resolvedComments", { count: resolved });
       if (!annotations.length) {
-        list.innerHTML = `<div class="empty">还没有评论。点击评论按钮后，在左侧 demo 中点击任意控件或区域即可添加。</div>`;
+        list.innerHTML = `<div class="empty">${t("noComments")}</div>`;
         renderPins();
         return;
       }
@@ -387,7 +387,7 @@ function installFrameHandlers() {
               </div>
             </div>
             <div class="card-tools">
-              <button class="icon-button" type="button" title="删除批注" aria-label="删除批注" data-delete="${item.id}">×</button>
+              <button class="icon-button" type="button" title="${t("deleteComment")}" aria-label="${t("deleteComment")}" data-delete="${item.id}">×</button>
             </div>
           </div>
           <div class="note">${escapeHtml(item.note)}</div>
@@ -398,11 +398,11 @@ function installFrameHandlers() {
             </div>
           `).join("")}
           <div class="card-actions">
-            <button class="status-button" type="button" data-status="${item.id}">${item.status === "resolved" ? "重开批注" : "标记解决"}</button>
+            <button class="status-button" type="button" data-status="${item.id}">${item.status === "resolved" ? t("reopenComment") : t("markResolved")}</button>
           </div>
           <form class="reply-form" data-reply="${item.id}">
-            <input name="note" placeholder="回复这条批注" />
-            <button type="submit">回复</button>
+            <input name="note" placeholder="${t("replyPlaceholder")}" />
+            <button type="submit">${t("reply")}</button>
           </form>
         </article>
       `).join("");
@@ -420,7 +420,7 @@ function installFrameHandlers() {
         button.addEventListener("click", async () => {
           const item = annotations.find(row => row.id === button.dataset.delete);
           if (!item) return;
-          if (!confirm("确定删除这条批注吗？")) return;
+          if (!confirm(t("deleteCommentConfirm"))) return;
           await api(`/api/annotations/${item.id}`, { method: "DELETE" });
         });
       });

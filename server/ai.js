@@ -58,6 +58,14 @@ async function generateRequirement(settings, body) {
   const baseUrl = String(ai.baseUrl || defaultStore().settings.ai.baseUrl).replace(/\/+$/, "");
   const model = String(ai.model || defaultStore().settings.ai.model).trim();
   const draftRequirement = String(body.draftRequirement || "").trim();
+  const language = body.language === "en" ? "English" : "中文";
+  const noDraftText = body.language === "en" ? "None" : "无";
+  const completionInstruction = body.language === "en"
+    ? "Please preserve the user's existing meaning, then fill in missing details. Output a complete requirement description that can directly replace the input field. Prefer Markdown lists."
+    : "请在保留用户已有描述含义的基础上，补齐遗漏信息，输出一版可直接替换输入框内容的完整需求说明。优先使用 Markdown 列表。";
+  const newInstruction = body.language === "en"
+    ? "Please output 4-8 concise requirements suitable for a requirements document. Prefer Markdown lists."
+    : "请输出 4-8 条精炼需求描述，适合直接放入需求文档。优先使用 Markdown 列表。";
   const payload = {
     model,
     temperature: 0.2,
@@ -65,19 +73,17 @@ async function generateRequirement(settings, body) {
       {
         role: "system",
         content:
-          "你是一名资深产品经理。请根据用户选择的页面区域代码、可见文本、上下文和用户已经写下的需求草稿，输出清晰、可执行的中文需求描述。用户草稿是最高优先级：必须优先保留它表达的业务意图、限制和措辞重点，不能反向改写或删除用户已经明确描述的规则。用户没有描述清楚的部分，才按照行业惯例补齐功能目标、用户交互、状态规则、异常边界和验收要点。不要编造页面中不存在的业务事实。",
+          `你是一名资深产品经理。请根据用户选择的页面区域代码、可见文本、上下文和用户已经写下的需求草稿，输出清晰、可执行的${language}需求描述。用户草稿是最高优先级：必须优先保留它表达的业务意图、限制和措辞重点，不能反向改写或删除用户已经明确描述的规则。用户没有描述清楚的部分，才按照行业惯例补齐功能目标、用户交互、状态规则、异常边界和验收要点。不要编造页面中不存在的业务事实。最终回答只能使用${language}。`,
       },
       {
         role: "user",
         content: [
           `页面标题：${truncateText(body.pageTitle, 200)}`,
           `选中元素：${truncateText(body.elementLabel, 200)}`,
-          `用户已有需求草稿：${draftRequirement ? truncateText(draftRequirement, 2000) : "无"}`,
+          `用户已有需求草稿：${draftRequirement ? truncateText(draftRequirement, 2000) : noDraftText}`,
           `可见文本：${truncateText(body.elementText, 1200)}`,
           `HTML：${truncateText(body.elementHtml, 5000)}`,
-          draftRequirement
-            ? "请在保留用户已有描述含义的基础上，补齐遗漏信息，输出一版可直接替换输入框内容的完整需求说明。优先使用 Markdown 列表。"
-            : "请输出 4-8 条精炼需求描述，适合直接放入需求文档。优先使用 Markdown 列表。",
+          draftRequirement ? completionInstruction : newInstruction,
         ].join("\n\n"),
       },
     ],

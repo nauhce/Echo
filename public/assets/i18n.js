@@ -1,0 +1,407 @@
+(function () {
+  const STORAGE_KEY = "echo-language";
+  const DEFAULT_LANGUAGE = "zh";
+
+  const dictionaries = {
+    zh: {
+      languageLabel: "语言",
+      languageZh: "中文",
+      languageEn: "English",
+      appTitle: "HTML 需求评审助手",
+      editTitle: "编辑标题",
+      serviceRunning: "本地服务运行中",
+      settings: "AI 与权限设置",
+      heroTitle: "把 HTML demo 变成内网多人评审页面",
+      heroDesc: "选择你的需求 demo，系统会生成一个评审链接。同事在同一个内网里打开链接后，可以输入姓名、选中页面元素、添加批注、回复和标记已解决。",
+      editCopy: "编辑文案",
+      title: "标题",
+      description: "描述",
+      cancel: "取消",
+      saveCopy: "保存文案",
+      importHtml: "导入 HTML",
+      uploadHtmlFile: "上传 HTML 文件",
+      fileHint: "导入html格式的文件，可以是文档、demo或者设计图。",
+      chooseFile: "选择文件",
+      noFileSelected: "未选择任何文件",
+      import: "导入",
+      importUrl: "导入可访问链接",
+      urlHint: "保存链接的快照到本地，让我们面向竞品描述需求",
+      saveSnapshot: "保存快照",
+      reviewDocs: "评审文档",
+      searchDocs: "搜索文档名称",
+      createFolder: "新建文件夹",
+      aiBaseUrl: "AI Base URL",
+      modelName: "模型名",
+      apiKeyPlaceholder: "留空则保留已保存的 Key",
+      apiKeyMissing: "尚未配置 API Key。",
+      apiKeySaved: "已保存 API Key；留空提交会继续沿用。",
+      saveSettings: "保存设置",
+      collaborators: "协作者",
+      closeSettings: "关闭设置",
+      closeCollaborators: "关闭协作者设置",
+      requirementCollaborators: "需求文档协作者",
+      collaboratorsPlaceholder: "张三、李四、产品经理",
+      collaboratorsHint: "多人用顿号、逗号或换行分隔。留空时，任何填写姓名的人都可以协作编写该文档。",
+      saveCollaborators: "保存协作者",
+      pageTitle: "页面标题",
+      saveTitle: "保存标题",
+      closeTitleEditor: "关闭标题编辑",
+      requestFailed: "请求失败",
+      linkCopied: "链接已复制",
+      localMachine: "本机：{origin}",
+      optionalAddress: "可选地址 {index}：{origin}",
+      id: "ID",
+      file: "文件",
+      source: "来源",
+      collaboratorPreview: "协作者",
+      everyoneCanCollaborate: "所有人可协作",
+      reviewLink: "评审链接",
+      start: "开始",
+      setCollaborators: "设置协作者",
+      copyShareLink: "复制分享链接",
+      moreActions: "更多操作",
+      exportComments: "导出批注",
+      revealInFolder: "浏览所在位置",
+      delete: "删除",
+      documents: "个文档",
+      unfiled: "未归档",
+      dragHere: "拖动文档到这里",
+      dragHereToUnfile: "拖动文档到这里移出文件夹",
+      noMatchingDocs: "没有找到匹配的文档",
+      noDocs: "还没有导入文档。",
+      docMovedToFolder: "文档已移动到文件夹",
+      docMovedOutFolder: "文档已移出文件夹",
+      openedFolder: "已打开文档所在位置",
+      deleteDocConfirm: "确定删除「{title}」吗？相关批注和需求也会一并删除。",
+      docDeleted: "文档已删除",
+      copySaved: "文案已保存",
+      titleSaved: "标题已保存",
+      enterFolderName: "请输入文件夹名称",
+      folderNameRequired: "文件夹名称不能为空",
+      folderCreated: "文件夹已创建",
+      documentName: "文档名称：{name}",
+      selectHtmlFile: "请选择 HTML 文件",
+      uploadFailed: "上传失败",
+      htmlUploaded: "已上传 HTML",
+      enterPageUrl: "请输入页面链接",
+      snapshotSaved: "已保存页面快照",
+      settingsSaved: "设置已保存",
+      chooseDocFirst: "请先选择文档",
+      collaboratorsSaved: "协作者已保存",
+
+      collaboration: "协作",
+      collaborationTools: "协作工具",
+      view: "查看",
+      comment: "评论",
+      requirement: "需求",
+      refresh: "刷新",
+      export: "导出",
+      exportTooltip: "导出的批注可以给AI，让AI按照批注修改",
+      demoTitle: "需求 demo",
+      yourName: "你的姓名",
+      commentsCount: "评论 {count}",
+      requirementsCount: "需求 {count}",
+      addComment: "添加批注",
+      selectedElement: "选中元素",
+      commentContent: "批注内容",
+      commentPlaceholder: "写下你的问题、建议或需要研发确认的点",
+      submitComment: "提交批注",
+      requirementDescription: "需求说明",
+      selectedArea: "选中区域",
+      requirementPlaceholder: "描述这个区域的功能目标、交互规则、状态和验收点",
+      aiDraftHint: "读取当前选区补足初稿",
+      aiComplete: "AI补足",
+      saveRequirement: "保存需求说明",
+      identityTitle: "输入身份信息",
+      identityPlaceholder: "用于评论、需求说明协作和权限识别",
+      identityHint: "身份会保存在当前浏览器中，下次打开评审链接会自动使用。",
+      enterReview: "进入评审",
+      anonymous: "匿名",
+      wholePage: "页面整体",
+      viewModeToast: "查看模式：评论和需求都可查看",
+      commentModeToast: "评论：点击页面元素添加评论",
+      viewOnlyRequirementToast: "当前姓名没有编辑权限，已进入查看模式",
+      requirementModeToast: "需求：点击页面区域添加需求说明",
+      enterIdentity: "请输入身份信息",
+      refreshed: "已刷新",
+      selectAreaFirst: "请先选择页面区域",
+      generating: "补足中...",
+      commentSubmitted: "批注已提交",
+      requirementSaved: "需求已保存",
+      viewOnlyRequirement: "当前姓名只能查看需求",
+      missingAnnotationTarget: "原批注元素当前未显示，批注点已隐藏",
+      requirementPopoverTitle: "需求说明",
+      close: "关闭",
+      resolvedComment: "已解决批注",
+      openComment: "未解决批注",
+      replyHistory: "回复记录 {count}",
+      noReplies: "暂无回复。",
+      noRequirementsEdit: "还没有需求说明。进入需求状态后，在左侧页面中点击区域即可添加。",
+      noRequirements: "还没有需求说明。",
+      editRequirement: "编辑需求说明",
+      deleteRequirement: "删除需求",
+      deleteRequirementConfirm: "确定删除这条需求说明吗？",
+      noVisibleContent: "还没有可查看的内容。",
+      hiddenContent: "评论和需求已隐藏。",
+      unresolvedComments: "未解决评论 {count}",
+      resolvedComments: "已解决评论 {count}",
+      noComments: "还没有评论。点击评论按钮后，在左侧 demo 中点击任意控件或区域即可添加。",
+      deleteComment: "删除批注",
+      reopenComment: "重开批注",
+      markResolved: "标记解决",
+      replyPlaceholder: "回复这条批注",
+      reply: "回复",
+      deleteCommentConfirm: "确定删除这条批注吗？",
+      kindRequirement: "需求",
+      kindComment: "评论",
+    },
+    en: {
+      languageLabel: "Language",
+      languageZh: "中文",
+      languageEn: "English",
+      appTitle: "HTML Requirements Review Assistant",
+      editTitle: "Edit title",
+      serviceRunning: "Local service running",
+      settings: "AI and permissions",
+      heroTitle: "Turn an HTML demo into an intranet review page",
+      heroDesc: "Choose a requirements demo and the app will generate a review link. Teammates on the same intranet can open it, enter their name, select page elements, add comments, reply, and mark items resolved.",
+      editCopy: "Edit copy",
+      title: "Title",
+      description: "Description",
+      cancel: "Cancel",
+      saveCopy: "Save copy",
+      importHtml: "Import HTML",
+      uploadHtmlFile: "Upload HTML file",
+      fileHint: "Import an HTML file, such as a document, demo, or design mockup.",
+      chooseFile: "Choose file",
+      noFileSelected: "No file selected",
+      import: "Import",
+      importUrl: "Import accessible URL",
+      urlHint: "Save a local snapshot of the link so you can describe requirements from a competitor page.",
+      saveSnapshot: "Save snapshot",
+      reviewDocs: "Review documents",
+      searchDocs: "Search document names",
+      createFolder: "New folder",
+      aiBaseUrl: "AI Base URL",
+      modelName: "Model name",
+      apiKeyPlaceholder: "Leave blank to keep the saved key",
+      apiKeyMissing: "No API key configured.",
+      apiKeySaved: "API key saved. Submit blank to keep using it.",
+      saveSettings: "Save settings",
+      collaborators: "Collaborators",
+      closeSettings: "Close settings",
+      closeCollaborators: "Close collaborator settings",
+      requirementCollaborators: "Requirement document collaborators",
+      collaboratorsPlaceholder: "Alice, Bob, product manager",
+      collaboratorsHint: "Separate names with commas or line breaks. Leave blank to allow anyone who enters a name to edit this document.",
+      saveCollaborators: "Save collaborators",
+      pageTitle: "Page title",
+      saveTitle: "Save title",
+      closeTitleEditor: "Close title editor",
+      requestFailed: "Request failed",
+      linkCopied: "Link copied",
+      localMachine: "This machine: {origin}",
+      optionalAddress: "Optional address {index}: {origin}",
+      id: "ID",
+      file: "File",
+      source: "Source",
+      collaboratorPreview: "Collaborators",
+      everyoneCanCollaborate: "Anyone can collaborate",
+      reviewLink: "Review link",
+      start: "Start",
+      setCollaborators: "Set collaborators",
+      copyShareLink: "Copy share link",
+      moreActions: "More actions",
+      exportComments: "Export comments",
+      revealInFolder: "Show in folder",
+      delete: "Delete",
+      documents: "documents",
+      unfiled: "Unfiled",
+      dragHere: "Drag documents here",
+      dragHereToUnfile: "Drag documents here to move them out of folders",
+      noMatchingDocs: "No matching documents found",
+      noDocs: "No imported documents yet.",
+      docMovedToFolder: "Document moved to folder",
+      docMovedOutFolder: "Document moved out of folder",
+      openedFolder: "Opened document location",
+      deleteDocConfirm: "Delete \"{title}\"? Related comments and requirements will also be deleted.",
+      docDeleted: "Document deleted",
+      copySaved: "Copy saved",
+      titleSaved: "Title saved",
+      enterFolderName: "Enter a folder name",
+      folderNameRequired: "Folder name is required",
+      folderCreated: "Folder created",
+      documentName: "Document name: {name}",
+      selectHtmlFile: "Please choose an HTML file",
+      uploadFailed: "Upload failed",
+      htmlUploaded: "HTML uploaded",
+      enterPageUrl: "Please enter a page URL",
+      snapshotSaved: "Page snapshot saved",
+      settingsSaved: "Settings saved",
+      chooseDocFirst: "Choose a document first",
+      collaboratorsSaved: "Collaborators saved",
+
+      collaboration: "Collaboration",
+      collaborationTools: "Collaboration tools",
+      view: "View",
+      comment: "Comment",
+      requirement: "Requirement",
+      refresh: "Refresh",
+      export: "Export",
+      exportTooltip: "Exported comments can be given to AI so it can revise the page accordingly.",
+      demoTitle: "Requirements demo",
+      yourName: "Your name",
+      commentsCount: "Comments {count}",
+      requirementsCount: "Requirements {count}",
+      addComment: "Add comment",
+      selectedElement: "Selected element",
+      commentContent: "Comment",
+      commentPlaceholder: "Write a question, suggestion, or point that needs engineering confirmation",
+      submitComment: "Submit comment",
+      requirementDescription: "Requirement description",
+      selectedArea: "Selected area",
+      requirementPlaceholder: "Describe this area's goal, interaction rules, states, and acceptance criteria",
+      aiDraftHint: "Use the selected area to complete the draft",
+      aiComplete: "AI complete",
+      saveRequirement: "Save requirement",
+      identityTitle: "Enter identity",
+      identityPlaceholder: "Used for comments, requirement collaboration, and permissions",
+      identityHint: "Your identity is saved in this browser and reused next time you open a review link.",
+      enterReview: "Enter review",
+      anonymous: "Anonymous",
+      wholePage: "Whole page",
+      viewModeToast: "View mode: comments and requirements are both visible",
+      commentModeToast: "Comment: click a page element to add a comment",
+      viewOnlyRequirementToast: "Your name has no edit permission, switched to view mode",
+      requirementModeToast: "Requirement: click a page area to add a requirement",
+      enterIdentity: "Please enter your identity",
+      refreshed: "Refreshed",
+      selectAreaFirst: "Select a page area first",
+      generating: "Generating...",
+      commentSubmitted: "Comment submitted",
+      requirementSaved: "Requirement saved",
+      viewOnlyRequirement: "This name can only view requirements",
+      missingAnnotationTarget: "The original annotated element is not visible, so the pin is hidden",
+      requirementPopoverTitle: "Requirement description",
+      close: "Close",
+      resolvedComment: "Resolved comment",
+      openComment: "Unresolved comment",
+      replyHistory: "Replies {count}",
+      noReplies: "No replies yet.",
+      noRequirementsEdit: "No requirements yet. Enter requirement mode, then click an area on the page to add one.",
+      noRequirements: "No requirements yet.",
+      editRequirement: "Edit requirement",
+      deleteRequirement: "Delete requirement",
+      deleteRequirementConfirm: "Delete this requirement?",
+      noVisibleContent: "No visible content yet.",
+      hiddenContent: "Comments and requirements are hidden.",
+      unresolvedComments: "Unresolved comments {count}",
+      resolvedComments: "Resolved comments {count}",
+      noComments: "No comments yet. Click the comment button, then click any control or area in the demo on the left.",
+      deleteComment: "Delete comment",
+      reopenComment: "Reopen comment",
+      markResolved: "Mark resolved",
+      replyPlaceholder: "Reply to this comment",
+      reply: "Reply",
+      deleteCommentConfirm: "Delete this comment?",
+      kindRequirement: "Requirement",
+      kindComment: "Comment",
+    },
+  };
+
+  const errorTranslations = {
+    "请求失败": "Request failed",
+    "请选择 HTML 文件": "Please choose an HTML file",
+    "请输入页面链接": "Please enter a page URL",
+    "文件夹名称不能为空": "Folder name is required",
+    "文档不存在": "Document not found",
+    "文件夹不存在": "Folder not found",
+    "批注内容不能为空": "Comment cannot be empty",
+    "批注不存在": "Comment not found",
+    "回复内容不能为空": "Reply cannot be empty",
+    "需求描述不能为空": "Requirement description cannot be empty",
+    "需求记录不存在": "Requirement not found",
+    "缺少文档 ID": "Missing document ID",
+    "当前姓名没有编辑需求文档的权限": "This name does not have permission to edit requirements",
+    "请输入有效的链接": "Please enter a valid link",
+    "AI 服务地址无效": "Invalid AI service URL",
+    "AI 服务返回内容不是有效 JSON": "AI service returned invalid JSON",
+    "AI 服务请求超时": "AI service request timed out",
+    "AI 服务没有返回需求描述": "AI service did not return a requirement description",
+    "请先在首页配置 AI API Key": "Configure the AI API key on the home page first",
+  };
+
+  function normalizeLanguage(value) {
+    return value === "en" ? "en" : "zh";
+  }
+
+  function currentLanguage() {
+    return normalizeLanguage(localStorage.getItem(STORAGE_KEY) || DEFAULT_LANGUAGE);
+  }
+
+  function translate(key, vars = {}) {
+    const lang = currentLanguage();
+    const source = dictionaries[lang][key] || dictionaries.zh[key] || key;
+    return source.replace(/\{(\w+)\}/g, (_, name) => Object.prototype.hasOwnProperty.call(vars, name) ? vars[name] : "");
+  }
+
+  function translateError(message) {
+    const text = String(message || "");
+    if (currentLanguage() !== "en") return text;
+    if (errorTranslations[text]) return errorTranslations[text];
+    return text
+      .replace(/^AI 服务请求失败：HTTP /, "AI service request failed: HTTP ")
+      .replace(/^链接访问失败：HTTP /, "Link request failed: HTTP ");
+  }
+
+  function applyTranslations(root = document) {
+    const lang = currentLanguage();
+    document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
+    root.querySelectorAll("[data-i18n]").forEach((el) => {
+      el.textContent = translate(el.dataset.i18n);
+    });
+    root.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      el.setAttribute("placeholder", translate(el.dataset.i18nPlaceholder));
+    });
+    root.querySelectorAll("[data-i18n-label]").forEach((el) => {
+      el.setAttribute("aria-label", translate(el.dataset.i18nLabel));
+    });
+    root.querySelectorAll("[data-i18n-title]").forEach((el) => {
+      el.setAttribute("title", translate(el.dataset.i18nTitle));
+    });
+    root.querySelectorAll("[data-i18n-tooltip]").forEach((el) => {
+      el.dataset.tooltip = translate(el.dataset.i18nTooltip);
+    });
+    root.querySelectorAll("[data-language-switch]").forEach((select) => {
+      select.value = lang;
+    });
+  }
+
+  function setLanguage(lang) {
+    const next = normalizeLanguage(lang);
+    localStorage.setItem(STORAGE_KEY, next);
+    applyTranslations(document);
+    window.dispatchEvent(new CustomEvent("echo:languagechange", { detail: { language: next } }));
+  }
+
+  function bindLanguageSwitchers(root = document) {
+    root.querySelectorAll("[data-language-switch]").forEach((select) => {
+      select.value = currentLanguage();
+      select.addEventListener("change", () => setLanguage(select.value));
+    });
+  }
+
+  window.EchoI18n = {
+    currentLanguage,
+    setLanguage,
+    applyTranslations,
+    bindLanguageSwitchers,
+    translateError,
+    t: translate,
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    bindLanguageSwitchers(document);
+    applyTranslations(document);
+  });
+})();

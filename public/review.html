@@ -10,58 +10,58 @@
 <body class="identity-locked">
   <header class="topbar">
     <div class="brand">
-      <strong>协作</strong>
+      <strong data-i18n="collaboration">协作</strong>
       <span class="status" id="docStatus"></span>
     </div>
     <div class="actions">
-      <div class="action-group" aria-label="协作工具">
-        <div class="tool-button-wrap" data-tooltip="查看">
-          <button id="commentViewBtn" class="toolbar-icon" type="button" aria-label="查看">
+      <div class="action-group" aria-label="协作工具" data-i18n-label="collaborationTools">
+        <div class="tool-button-wrap" data-tooltip="查看" data-i18n-tooltip="view">
+          <button id="commentViewBtn" class="toolbar-icon" type="button" aria-label="查看" data-i18n-label="view">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
-            <span class="toolbar-label">查看</span>
+            <span class="toolbar-label" data-i18n="view">查看</span>
           </button>
         </div>
-        <div class="tool-button-wrap" id="commentModeWrap" data-tooltip="评论">
-          <button id="modeBtn" class="toolbar-icon" type="button" aria-label="评论">
+        <div class="tool-button-wrap" id="commentModeWrap" data-tooltip="评论" data-i18n-tooltip="comment">
+          <button id="modeBtn" class="toolbar-icon" type="button" aria-label="评论" data-i18n-label="comment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path>
             </svg>
-            <span class="toolbar-label">评论</span>
+            <span class="toolbar-label" data-i18n="comment">评论</span>
           </button>
         </div>
-        <div class="tool-button-wrap" id="requirementEditWrap" data-tooltip="需求">
-          <button id="requirementEditBtn" class="toolbar-icon" type="button" aria-label="需求">
+        <div class="tool-button-wrap" id="requirementEditWrap" data-tooltip="需求" data-i18n-tooltip="requirement">
+          <button id="requirementEditBtn" class="toolbar-icon" type="button" aria-label="需求" data-i18n-label="requirement">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
             </svg>
-            <span class="toolbar-label">需求</span>
+            <span class="toolbar-label" data-i18n="requirement">需求</span>
           </button>
         </div>
       </div>
-      <div class="tool-button-wrap" data-tooltip="刷新">
-        <button id="refreshBtn" class="toolbar-icon" type="button" aria-label="刷新">
+      <div class="tool-button-wrap" data-tooltip="刷新" data-i18n-tooltip="refresh">
+        <button id="refreshBtn" class="toolbar-icon" type="button" aria-label="刷新" data-i18n-label="refresh">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
             <path d="M21 12a9 9 0 0 1-15.5 6.2"></path>
             <path d="M3 12A9 9 0 0 1 18.5 5.8"></path>
             <path d="M7 18H3v4"></path>
             <path d="M17 6h4V2"></path>
           </svg>
-          <span class="toolbar-label">刷新</span>
+          <span class="toolbar-label" data-i18n="refresh">刷新</span>
         </button>
       </div>
-      <div class="tool-button-wrap" data-tooltip="导出的批注可以给AI，让AI按照批注修改">
-        <a id="exportLink" aria-label="导出">
-          <button class="toolbar-icon" type="button" aria-label="导出">
+      <div class="tool-button-wrap" data-tooltip="导出的批注可以给AI，让AI按照批注修改" data-i18n-tooltip="exportTooltip">
+        <a id="exportLink" aria-label="导出" data-i18n-label="export">
+          <button class="toolbar-icon" type="button" aria-label="导出" data-i18n-label="export">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <path d="M7 10l5 5 5-5"></path>
               <path d="M12 15V3"></path>
             </svg>
-            <span class="toolbar-label">导出</span>
+            <span class="toolbar-label" data-i18n="export">导出</span>
           </button>
         </a>
       </div>
@@ -70,7 +70,7 @@
 
   <main class="layout">
     <section class="stage">
-      <iframe id="demoFrame" title="需求 demo"></iframe>
+      <iframe id="demoFrame" title="需求 demo" data-i18n-title="demoTitle"></iframe>
       <div id="overlay" class="overlay">
         <div id="hoverBox" class="hover-box"></div>
       </div>
@@ -78,7 +78,7 @@
     <aside>
       <div class="side-head">
         <div class="person">
-          <label>你的姓名</label>
+          <label data-i18n="yourName">你的姓名</label>
           <div class="identity-display" id="authorDisplay"></div>
           <input id="author" type="hidden" />
         </div>
@@ -99,61 +99,62 @@
 
   <dialog id="commentDialog">
     <form method="dialog" class="modal" id="commentForm">
-      <h2>添加批注</h2>
+      <h2 data-i18n="addComment">添加批注</h2>
       <div class="field">
-        <label>选中元素</label>
+        <label data-i18n="selectedElement">选中元素</label>
         <div class="element" id="selectedElement"></div>
       </div>
       <div class="field">
-        <label for="commentText">批注内容</label>
-        <textarea id="commentText" placeholder="写下你的问题、建议或需要研发确认的点"></textarea>
+        <label for="commentText" data-i18n="commentContent">批注内容</label>
+        <textarea id="commentText" placeholder="写下你的问题、建议或需要研发确认的点" data-i18n-placeholder="commentPlaceholder"></textarea>
       </div>
       <div class="modal-actions">
-        <button type="button" id="cancelComment">取消</button>
-        <button type="submit" class="primary">提交批注</button>
+        <button type="button" id="cancelComment" data-i18n="cancel">取消</button>
+        <button type="submit" class="primary" data-i18n="submitComment">提交批注</button>
       </div>
     </form>
   </dialog>
 
   <dialog id="requirementDialog">
     <form method="dialog" class="modal" id="requirementForm">
-      <h2>需求说明</h2>
+      <h2 data-i18n="requirementDescription">需求说明</h2>
       <div class="field">
-        <label>选中区域</label>
+        <label data-i18n="selectedArea">选中区域</label>
         <div class="element" id="selectedRequirementElement"></div>
       </div>
       <div class="field">
-        <label for="requirementText">需求说明</label>
+        <label for="requirementText" data-i18n="requirementDescription">需求说明</label>
         <div class="requirement-input-wrap">
-          <textarea id="requirementText" placeholder="描述这个区域的功能目标、交互规则、状态和验收点"></textarea>
+          <textarea id="requirementText" placeholder="描述这个区域的功能目标、交互规则、状态和验收点" data-i18n-placeholder="requirementPlaceholder"></textarea>
           <div class="ai-inline">
-            <span class="meta">读取当前选区补足初稿</span>
-            <button type="button" id="generateRequirement">AI补足</button>
+            <span class="meta" data-i18n="aiDraftHint">读取当前选区补足初稿</span>
+            <button type="button" id="generateRequirement" data-i18n="aiComplete">AI补足</button>
           </div>
         </div>
       </div>
       <div class="modal-actions">
-        <button type="button" id="cancelRequirement">取消</button>
-        <button type="submit" class="primary">保存需求说明</button>
+        <button type="button" id="cancelRequirement" data-i18n="cancel">取消</button>
+        <button type="submit" class="primary" data-i18n="saveRequirement">保存需求说明</button>
       </div>
     </form>
   </dialog>
 
   <dialog id="identityDialog">
     <form method="dialog" class="modal" id="identityForm">
-      <h2>输入身份信息</h2>
+      <h2 data-i18n="identityTitle">输入身份信息</h2>
       <div class="field">
-        <input id="identityName" placeholder="用于评论、需求说明协作和权限识别" autocomplete="name" />
-        <div class="meta">身份会保存在当前浏览器中，下次打开评审链接会自动使用。</div>
+        <input id="identityName" placeholder="用于评论、需求说明协作和权限识别" autocomplete="name" data-i18n-placeholder="identityPlaceholder" />
+        <div class="meta" data-i18n="identityHint">身份会保存在当前浏览器中，下次打开评审链接会自动使用。</div>
       </div>
       <div class="modal-actions">
-        <button type="submit" class="primary">进入评审</button>
+        <button type="submit" class="primary" data-i18n="enterReview">进入评审</button>
       </div>
     </form>
   </dialog>
 
   <div id="toast" class="toast"></div>
 
+  <script src="/assets/i18n.js" defer></script>
   <script src="/assets/review-core.js" defer></script>
   <script src="/assets/review-render.js" defer></script>
   <script src="/assets/review-actions.js" defer></script>
