@@ -3,3 +3,6 @@ server.err.log
 data/store.json
 data/docs/*.html
 !data/docs/.gitkeep
+bin/
+EchoAssistant.exe
+node_modules/

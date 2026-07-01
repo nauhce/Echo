@@ -1,9 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 
+const isPkg = typeof process.pkg !== 'undefined';
 const ROOT = path.resolve(__dirname, "..");
+const EXE_DIR = isPkg ? path.dirname(process.execPath) : ROOT;
+
 const PUBLIC_DIR = path.join(ROOT, "public");
-const DATA_DIR = path.join(ROOT, "data");
+const DATA_DIR = path.join(EXE_DIR, "data");
 const DOCS_DIR = path.join(DATA_DIR, "docs");
 const STORE_FILE = path.join(DATA_DIR, "store.json");
 const PORT = Number(process.env.PORT || 5177);

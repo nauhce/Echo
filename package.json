@@ -1,0 +1,19 @@
+{
+  "name": "echo",
+  "version": "1.0.0",
+  "description": "HTML Requirement Review Assistant",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "pkg . -t node18-win-x64,node18-macos-x64,node18-macos-arm64 --out-path bin --no-bytecode --public --public-packages \"*\""
+  },
+  "bin": "server.js",
+  "pkg": {
+    "assets": [
+      "public/**/*"
+    ]
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+}

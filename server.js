@@ -1,5 +1,6 @@
 const http = require("http");
 const path = require("path");
+const { exec } = require("child_process");
 const { PUBLIC_DIR, PORT, HOST } = require("./server/config");
 const { handleApi } = require("./server/api");
 const { handleSse } = require("./server/events");
@@ -46,4 +47,10 @@ server.listen(PORT, HOST, () => {
   console.log("HTML 需求评审助手已启动");
   console.log(`本机地址: http://localhost:${PORT}`);
   getLocalIps().forEach((ip) => console.log(`内网地址: http://${ip}:${PORT}`));
+  
+  if (process.platform === 'win32') {
+    exec(`start http://localhost:${PORT}`);
+  } else if (process.platform === 'darwin') {
+    exec(`open http://localhost:${PORT}`);
+  }
 });
