@@ -10,6 +10,8 @@ const {
   titleFromFilename,
   titleFromUrl,
   titleFromHtml,
+  exportFilename,
+  buildAnnotatedExportHtml,
   parseMultipart,
   fetchRemoteHtml,
   importHtmlFile,
@@ -19,6 +21,12 @@ const {
   canEditRequirements,
   requireRequirementEditor,
 } = require("./docs");
+const {
+  archiveSnapshotResources,
+  inlineArchivedResourcesForExport,
+  shouldArchiveSnapshotResources,
+  assetDirForDoc,
+} = require("./resource-archiver");
 const { generateRequirement } = require("./ai");
 const { broadcast } = require("./events");
 
@@ -137,13 +145,46 @@ async function handleApi(req, res, url) {
       const fallbackTitle = titleFromUrl(snapshot.finalUrl);
       const title = String(body.title || titleFromHtml(snapshot.html, fallbackTitle)).trim();
       const docId = uniqueDocId(title, store);
-      fs.writeFileSync(safeDocFile(docId), snapshot.html, "utf8");
+      let html = snapshot.html;
+      const archiveDecision = shouldArchiveSnapshotResources(snapshot.html, snapshot.finalUrl);
+      let archive = {
+        enabled: false,
+        skipped: true,
+        reason: archiveDecision.reason,
+        resourceCount: archiveDecision.resourceCount,
+      };
+      if (archiveDecision.needed) {
+        try {
+          const archived = await archiveSnapshotResources(snapshot.html, snapshot.finalUrl, docId);
+          html = archived.html;
+          archive = {
+            enabled: true,
+            skipped: false,
+            reason: archiveDecision.reason,
+            assetCount: archived.assetCount,
+            failedAssetCount: archived.failedAssetCount,
+            totalBytes: archived.totalBytes,
+            resourceCount: archiveDecision.resourceCount,
+          };
+        } catch (archiveError) {
+          fs.rmSync(assetDirForDoc(docId), { recursive: true, force: true });
+          archive = {
+            enabled: false,
+            skipped: false,
+            reason: archiveDecision.reason,
+            error: archiveError.message,
+            resourceCount: archiveDecision.resourceCount,
+          };
+        }
+      }
+      fs.writeFileSync(safeDocFile(docId), html, "utf8");
       const doc = {
         id: docId,
         title,
         filename: `${docId}.html`,
         sourcePath: "",
         sourceUrl: snapshot.finalUrl,
+        archive,
         folderId: "",
         collaborators: [],
         createdAt: new Date().toISOString(),
@@ -223,6 +264,7 @@ async function handleApi(req, res, url) {
       store.requirements = store.requirements.filter((item) => item.docId !== docId);
       const filePath = safeDocFile(docId);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      fs.rmSync(assetDirForDoc(docId), { recursive: true, force: true });
       writeStore(store);
       return json(res, 200, { ok: true });
     } catch (error) {
@@ -413,6 +455,40 @@ if (req.method === "POST" && url.pathname === "/api/requirements/generate") {
       "Content-Disposition": `attachment; filename="${(doc && doc.id) || "annotations"}.csv"`,
     });
     res.end(`\uFEFF${csv}`);
+    return;
+  }
+
+  const htmlExportMatch = /^\/api\/docs\/([^/]+)\/export-html$/.exec(url.pathname);
+  if (htmlExportMatch && req.method === "GET") {
+    const docId = routeDocId(htmlExportMatch[1]);
+    const doc = store.docs.find((item) => item.id === docId);
+    if (!doc) return json(res, 404, { error: "æ–‡æ¡£ä¸å­˜åœ¨" });
+    const filePath = safeDocFile(docId);
+    if (!fs.existsSync(filePath)) return json(res, 404, { error: "HTML æ–‡ä»¶ä¸å­˜åœ¨" });
+    let sourceHtml = fs.readFileSync(filePath, "utf8");
+    let exportArchive = null;
+    if (doc.archive && doc.archive.enabled) {
+      try {
+        exportArchive = inlineArchivedResourcesForExport(sourceHtml, docId);
+        sourceHtml = exportArchive.html;
+      } catch (error) {
+        return json(res, 400, { error: error.message });
+      }
+    }
+    const annotatedHtml = buildAnnotatedExportHtml(
+      sourceHtml,
+      doc,
+      listAnnotations(store, docId),
+      listRequirements(store, docId)
+    );
+    const filename = encodeURIComponent(exportFilename(doc));
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Disposition": `attachment; filename="annotated-review.html"; filename*=UTF-8''${filename}`,
+      "Cache-Control": "no-store",
+      "X-Echo-Inlined-Assets": String(exportArchive ? exportArchive.assetCount : 0),
+    });
+    res.end(annotatedHtml);
     return;
   }
 

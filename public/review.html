@@ -53,17 +53,19 @@
           <span class="toolbar-label" data-i18n="refresh">刷新</span>
         </button>
       </div>
-      <div class="tool-button-wrap" data-tooltip="导出的批注可以给AI，让AI按照批注修改" data-i18n-tooltip="exportTooltip">
-        <a id="exportLink" aria-label="导出" data-i18n-label="export">
-          <button class="toolbar-icon" type="button" aria-label="导出" data-i18n-label="export">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <path d="M7 10l5 5 5-5"></path>
-              <path d="M12 15V3"></path>
-            </svg>
-            <span class="toolbar-label" data-i18n="export">导出</span>
-          </button>
-        </a>
+      <div class="tool-button-wrap export-menu-wrap" data-tooltip="导出的批注可以给AI，让AI按照批注修改" data-i18n-tooltip="exportTooltip">
+        <button id="exportMenuBtn" class="toolbar-icon" type="button" aria-label="导出" aria-haspopup="true" aria-expanded="false" data-i18n-label="export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <path d="M7 10l5 5 5-5"></path>
+            <path d="M12 15V3"></path>
+          </svg>
+          <span class="toolbar-label" data-i18n="export">导出</span>
+        </button>
+        <div class="export-menu" id="exportMenu">
+          <a id="exportLink" href="#" data-i18n="exportCsv">导出批注表格</a>
+          <a id="exportHtmlLink" href="#" data-i18n="exportAnnotatedHtml">导出带批注 HTML</a>
+        </div>
       </div>
     </div>
   </header>

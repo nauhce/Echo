@@ -79,6 +79,23 @@
         button.disabled = false;
       }
     });
+    const exportMenuWrap = document.querySelector(".export-menu-wrap");
+    const exportMenuBtn = document.getElementById("exportMenuBtn");
+    exportMenuBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = exportMenuWrap.classList.toggle("open");
+      exportMenuBtn.setAttribute("aria-expanded", String(isOpen));
+    });
+    document.addEventListener("click", (event) => {
+      if (!exportMenuWrap.contains(event.target)) {
+        exportMenuWrap.classList.remove("open");
+        exportMenuBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+    document.getElementById("exportMenu").addEventListener("click", () => {
+      exportMenuWrap.classList.remove("open");
+      exportMenuBtn.setAttribute("aria-expanded", "false");
+    });
     document.getElementById("cancelComment").addEventListener("click", () => dialog.close());
     document.getElementById("cancelRequirement").addEventListener("click", () => requirementDialog.close());
     showCommentsInput.addEventListener("change", () => {

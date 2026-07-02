@@ -82,7 +82,11 @@
             <input id="pageUrl" name="url" type="url" placeholder="https://example.com/page.html" />
             <div class="file-name-preview" data-i18n="urlHint">保存链接的快照到本地，让我们面向竞品描述需求</div>
           </div>
-          <button type="submit" data-i18n="saveSnapshot">保存快照</button>
+          <button id="urlImportButton" type="submit" data-i18n="saveSnapshot">保存快照</button>
+          <div class="import-progress" id="urlImportProgress" role="status" aria-live="polite" hidden>
+            <div class="import-progress-bar" aria-hidden="true"></div>
+            <div class="import-progress-text" data-i18n="importingSnapshot">正在导入页面并下载资源...</div>
+          </div>
         </form>
       </div>
     </section>

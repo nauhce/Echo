@@ -27,6 +27,9 @@ const docsEl = document.getElementById("docs");
     const fileInput = document.getElementById("file");
     const chooseFileBtn = document.getElementById("chooseFileBtn");
     const selectedFileName = document.getElementById("selectedFileName");
+    const pageUrlInput = document.getElementById("pageUrl");
+    const urlImportButton = document.getElementById("urlImportButton");
+    const urlImportProgress = document.getElementById("urlImportProgress");
     const defaultHeroCopy = {
       title: () => t("heroTitle"),
       desc: () => t("heroDesc"),
@@ -444,6 +447,13 @@ const docsEl = document.getElementById("docs");
         : defaultFileHint();
     }
 
+    function setUrlImportLoading(isLoading) {
+      pageUrlInput.disabled = isLoading;
+      urlImportButton.disabled = isLoading;
+      urlImportButton.textContent = isLoading ? t("importing") : t("saveSnapshot");
+      urlImportProgress.hidden = !isLoading;
+    }
+
     chooseFileBtn.addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", updateSelectedFile);
 
@@ -473,8 +483,9 @@ const docsEl = document.getElementById("docs");
       event.preventDefault();
       const form = event.currentTarget;
       try {
-        const pageUrl = document.getElementById("pageUrl").value.trim();
+        const pageUrl = pageUrlInput.value.trim();
         if (!pageUrl) throw new Error(t("enterPageUrl"));
+        setUrlImportLoading(true);
         await api("/api/docs/import-url", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -485,6 +496,8 @@ const docsEl = document.getElementById("docs");
         loadDocs();
       } catch (error) {
         toast(error.message);
+      } finally {
+        setUrlImportLoading(false);
       }
     });
 

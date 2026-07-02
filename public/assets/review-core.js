@@ -39,6 +39,7 @@ const docId = decodeURIComponent(location.pathname.split("/").pop());
     let events = null;
 
     document.getElementById("exportLink").href = `/api/docs/${encodeURIComponent(docId)}/export`;
+    document.getElementById("exportHtmlLink").href = `/api/docs/${encodeURIComponent(docId)}/export-html`;
     document.getElementById("docStatus").textContent = docId;
 
     function toast(message) {

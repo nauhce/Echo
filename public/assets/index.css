@@ -379,6 +379,17 @@
       transform: translateY(0);
       box-shadow: none;
     }
+    button:disabled, .button.is-disabled {
+      cursor: wait;
+      opacity: 0.68;
+      transform: none;
+      box-shadow: none;
+    }
+    button:disabled:hover, .button.is-disabled:hover {
+      background: var(--accent);
+      transform: none;
+      box-shadow: none;
+    }
     .secondary {
       background: rgba(255, 255, 255, 0.7);
       color: var(--text);
@@ -411,6 +422,42 @@
       background: rgba(255, 255, 255, 0.88);
       box-shadow: var(--shadow);
       transform: translateY(-1px);
+    }
+    .import-progress {
+      display: grid;
+      gap: 8px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.68);
+    }
+    .import-progress[hidden] {
+      display: none;
+    }
+    .import-progress-bar {
+      position: relative;
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #ece9e2;
+    }
+    .import-progress-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: 42%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #111827, #6b7280);
+      animation: importProgressSlide 1.05s ease-in-out infinite;
+    }
+    .import-progress-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    @keyframes importProgressSlide {
+      0% { transform: translateX(-115%); }
+      100% { transform: translateX(245%); }
     }
     .settings-grid {
       display: grid;

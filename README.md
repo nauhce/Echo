@@ -8,10 +8,12 @@ It runs as a small local web service. You import an HTML file or save a snapshot
 
 - Import standalone HTML files.
 - Save local snapshots from reachable page URLs.
+- Automatically archive page resources for modern Nuxt / Next / Vite-style pages when a plain HTML snapshot would likely lose styling.
 - Share review links over LAN or VPN.
 - Comment on specific page elements and regions.
 - Reply to comments and mark them resolved or reopened.
 - Add requirement descriptions for selected UI areas.
+- Export annotated HTML snapshots with pins, comments, requirements, replies, filters, and Markdown-rendered notes.
 - Use AI to complete requirement drafts when an OpenAI-compatible API key is configured.
 - Configure requirement collaborators.
 - Switch the interface between Chinese and English globally.
@@ -80,6 +82,21 @@ node server.js
 5. Reviewers enter their name, choose view/comment/requirement mode, and collaborate.
 6. Keep the host service running while teammates are reviewing.
 
+## URL Snapshots
+
+Echo first saves the target page HTML. For simple pages, it keeps the snapshot lightweight and does not download extra resources. For resource-heavy modern pages, Echo detects framework and bundler signals such as Nuxt / Next paths, module preload links, hashed CSS/JS chunks, and utility-class-heavy layouts. When those signals are present, Echo downloads the page's required CSS, JavaScript, images, and fonts into a document-specific local resource folder.
+
+This improves visual fidelity for imported competitor pages while avoiding unnecessary slowdown for simple HTML documents.
+
+## Export
+
+Review pages provide two export paths:
+
+- Comment table export: CSV for comments and replies.
+- Annotated HTML export: a browser-openable HTML file with comment pins, requirement pins, filters, replies, and Markdown-rendered notes.
+
+If a document was imported with archived resources, the annotated HTML export automatically inlines those local resources as `data:` URLs. The exported file can then be opened directly without depending on the original Echo service or local `data/docs/` paths. Documents without archived resources keep the lighter export behavior.
+
 ## Data Storage
 
 Runtime data is stored locally:
@@ -89,7 +106,7 @@ data/store.json
 data/docs/
 ```
 
-These files are ignored by Git. Imported URL snapshots are saved under `data/docs/`.
+These files are ignored by Git. Imported URL snapshots are saved under `data/docs/`, and archived URL resources are saved in document-specific `data/docs/*_assets/` folders.
 
 ## AI Settings
 
@@ -100,6 +117,8 @@ AI-assisted requirement generation uses the settings configured on the home page
 - API key
 
 The generated requirement language follows the current UI language.
+
+Do not commit runtime data files or local configuration containing API keys. The default Git ignore rules exclude `data/store.json`, imported HTML snapshots, archived resources, build outputs, and packaged binaries.
 
 ## Troubleshooting
 
